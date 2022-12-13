@@ -1,0 +1,30 @@
+{
+  "name": "project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "vite build && xcopy \".\\lsbin\\conf\" \".\\dist\" && node lsbin\\deploy.cjs repo.jzdianzi.cn/projtest-signboard-site:1.0-SNAPSHOT"
+  },
+  "dependencies": {
+    "axios": "^1.2.0",
+    "element-plus": "^2.2.25",
+    "sass": "^1.56.1",
+    "vue": "^3.2.41",
+    "vue-router": "^4.1.6",
+    "vuex": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^3.2.0",
+    "scss": "^0.2.4",
+    "scss-loader": "^0.0.1",
+    "typescript": "^4.6.4",
+    "vite": "^3.2.3",
+    "vue-tsc": "^1.0.9",
+    "tar-fs": "^2.1.1",
+    "node-docker-api": "^1.1.22"
+  }
+}
