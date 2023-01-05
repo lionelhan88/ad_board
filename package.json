@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && xcopy \".\\lsbin\\conf\" \".\\dist\" && node lsbin\\deploy.cjs repo.jzdianzi.cn/projtest-signboard-site:1.0-SNAPSHOT"
+    "testEnv": "vite build --mode development && xcopy \".\\lsbin\\conf\" \".\\dist\" && node lsbin\\deploy.cjs repo.jzdianzi.cn/projtest-signboard-site:1.0-SNAPSHOT",
+    "deploy": "vite build --mode production && xcopy \".\\lsbin\\conf\" \".\\dist\" && node lsbin\\deploy.cjs repo.jzdianzi.cn/projtest-signboard-site:1.0",
+    "development":"vite --mode development",
+    "production": "vite --mode production"
   },
   "dependencies": {
     "axios": "^1.2.0",

@@ -12,23 +12,16 @@ import {
   onMounted,
   getCurrentInstance,
   toRefs,
-  defineExpose,
-  defineProps,
 } from "vue";
 
 const currentInstance = getCurrentInstance();
 const { $axios } = currentInstance.appContext.config.globalProperties;
 import { identifyingCode } from "../api/apiRequest";
+import { storage } from '../utils/storage';
 
 let arr = ref("");
-let codeKey = ref("err in son");
+let codeKey = ref("");
 
-const props = defineProps({
-  msg: {
-    type: Number,
-    default: -1,
-  },
-});
 
 onMounted(() => {
   // 验证码请求
@@ -36,24 +29,11 @@ onMounted(() => {
   request.then((response) => {
     arr.value = response.data.data.image;
     codeKey.value = response.data.data.codeKey;
+    storage.set("codeKey", response.data.data.codeKey)
   });
 });
 
-watch(
-  () => props.msg,
-  (val, preVal) => {
-    if (val != preVal) {
-      const request = identifyingCode();
-      request.then((response) => {
-        arr.value = response.data.data.image;
-        codeKey.value = response.data.data.codeKey;
-      });
-    }
-  },
-  {
-    deep: true,
-  }
-);
+
 
 /**
  * 点击刷新
@@ -78,7 +58,6 @@ const getData = () => {
   });
 };
 
-defineExpose({ codeKey });
 </script>
 
 <style lang="scss" scoped>

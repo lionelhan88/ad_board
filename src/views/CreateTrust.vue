@@ -180,6 +180,7 @@
               v-model.number="ruleForm.area"
               placeholder="请输入检测面积"
               style="width: 625px"
+              @input="valueChange(ruleForm.area)" 
             />
           </el-form-item>
         </el-col>
@@ -190,6 +191,7 @@
               v-model.number="ruleForm.height"
               placeholder="请输入牌面高度"
               style="width: 625px"
+              @input="valueChange(ruleForm.height)"
             />
           </el-form-item>
         </el-col>
@@ -321,8 +323,6 @@ const defaultProps = {
   label: "name",
 };
 
-
-
 const ruleForm = reactive({
   detectionStartTime: "",
   detectionEndTime: "",
@@ -358,7 +358,6 @@ let defaultTree = [];
 
 onMounted(() => {
   if (route.query != null) {
-    console.log("is emptyyyyyy ");
     ruleForm.shopId = route.query.shopId;
     ruleForm.facilityId = route.query.id;
     ruleForm.facilityNo = route.query.id;
@@ -368,7 +367,6 @@ onMounted(() => {
     ruleForm.facilityName = route.query.signName;
     ruleForm.shopName = route.query.name;
   }
-
   callBack.value = getAllMethods();
   callBack.value.then((response) => {
     initOption.value = response.data.data;
@@ -379,7 +377,6 @@ onMounted(() => {
     })
   });
 
-console.log("initOptionnnnnn ", defaultTree )
 
 });
 
@@ -444,6 +441,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   });
 };
 
+
 //======================================== 点击事件 ================================================
 
 const resetForm = (formEl: FormInstance | undefined) => {
@@ -507,6 +505,16 @@ const dateFormat = (time : Date) => {
   var sec = data.getSeconds() < 10 ? '0' + data.getSeconds() : data.getSeconds();
 
   return `${y}-${m}-${d} ${hours}:${min}:${sec}`
+}
+
+const valueChange = (value) =>{
+  return value
+        .replace(/[^\d.]/g, "")
+        .replace(/\.{2,}/g, ".")
+        .replace(".", "$#$")
+        .replace(/\./g, "")
+        .replace("$#$", ".")
+        .replace(/^\./g, "");
 }
 
 //======================================== 表单规则 ================================================
@@ -643,7 +651,7 @@ const eqp_options = [
   overflow-y: scroll;
   overflow-x: hidden;
   width: 1000px;
-  height: 320px;
+  height: 280px;
 }
 
 .el-tree {
@@ -673,7 +681,7 @@ const eqp_options = [
 
 .selectAll{
   position: relative;
-  margin-top: -600px;
+  margin-top: -520px;
   margin-left: 45px;
   height: 25px;
 }

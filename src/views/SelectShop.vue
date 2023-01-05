@@ -182,6 +182,4 @@ const returnPage = () => {
   margin-left: 480px;
   margin-top: 16px;
 }
-
-
 </style>

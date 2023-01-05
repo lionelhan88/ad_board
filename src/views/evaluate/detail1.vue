@@ -1,33 +1,269 @@
+<script lang="ts" setup>
+import { ref, onMounted, reactive, onChange } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { UploadFilled } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { getDetectionDetail, saveDetectionDetails, getUploadPathUrl, saveFileFullPath, delFile, getAccessUrl } from "../../api/apiRequest";
+const router = useRouter();
+
+const requirement = ref();
+const flag = ref(true);
+const isUpload = ref(false);
+
+const dialogVisible_success = ref(false);
+const dialogVisible_photo = ref(false);
+const dialogVisible_photoDelete = ref(false);
+const dialogVisible_cannotPreview = ref(false);
+const dialogVisiblePic = ref(false);
+const dialogImageUrl = ref('');
+
+const op = ["不符合", "符合"]
+
+const options = [
+  {
+    value: 0,
+    label: "不符合",
+  },
+  {
+    value: 1,
+    label: "符合",
+  },
+];
+
+const fileList = ref([]);
+const fileSize = ref(0);
+
+const getURLdata = {
+    entrustmentDetailId: "",
+    testItemsId: "",
+}
+
+const goBackPage = () => {
+  router.go(-1);
+};
+
+onMounted(() => {
+  console.log("fileelele ", fileList.value)
+  const callBack = getDetectionDetail(router.currentRoute.value.query);
+  callBack.then((response) => {
+    console.log("something in onMounted", response.data.data[0].pics.length);
+    content.value = response.data.data[0];
+    uploadPhotoDetail.testItemsId = content.value.testItemsId;
+    uploadPhotoDetail.entrustmentDetailId = content.value.entrustmentDetailId;
+    getURLdata.entrustmentDetailId = content.value.entrustmentDetailId;
+    getURLdata.testItemsId = content.value.testItemsId;
+    fileSize.value = content.value.pics.length;
+  });  
+});
+
+const saveResult = reactive([]);
+
+const content = ref([]);
+
+const uploadData = reactive({
+  policy: "",
+  signature: "",
+  key: "",
+  OSSAccessKeyId: "",
+  url:"",
+});
+
+
+
+const uploadFile = (param) => {
+  console.log("filelelelele ", param);
+  let types = ['image/jpeg', 'image/jpg', 'image/png'];
+  const isImage = types.includes(param.type)
+  if(!isImage){
+    ElMessage({
+      message: '上传的图片只能是JPG，JPEG，PNG格式',
+      type: "warning"
+    })
+    return;
+  }else{
+    return new Promise((resolve, reject) => {
+    const getURL = getUploadPathUrl(getURLdata);
+    getURL.then((response) => {
+      console.log("get111");
+      uploadData.policy = response.data.data.policy;
+      uploadData.signature = response.data.data.signature;
+      uploadData.key = response.data.data.path + "/" + param.name;
+      uploadData.OSSAccessKeyId = response.data.data.accessKey;
+      uploadData.url = response.data.data.url;
+      fileList.value.push(param.name)
+      resolve(true);
+      console.log("上传之前文件信息；", uploadData);
+    });
+  });
+  }
+};
+
+const saveDetail = () => {
+  content.value.children.forEach(element => {
+    console.log("1212312", element);
+    const data = {isFit: element.isFit, 
+                  detectionResult: element.detectionResult, 
+                  entrustmentDetailId: element.entrustmentDetailId,
+                  testItemsId: element.testItemsId,}
+    saveResult.push(data);
+  })
+
+  const response = saveDetectionDetails(saveResult);
+
+  response.then((r) => {
+    if(r.data.code == 200){
+      dialogVisible_success.value = true;
+    }
+  })
+};
+
+const handleClick = () => {
+  dialogVisible_success.value = false;
+  dialogVisible_photo.value = false;
+  dialogVisible_photoDelete.value = false;
+  router.go(0);
+}
+
+const editDetail = () => {
+  flag.value = false;
+  console.log("hjhiahfaihf ", flag.value);
+};
+
+const cancelBtn = () => {
+    flag.value = true;
+}
+
+const uploadPhotoDetail = reactive({
+  entrustmentDetailId: "",
+  testItemsId:"",
+  names:[],
+});
+
+const uploadPhoto = () => {  
+    uploadPhotoDetail.names = fileList.value;
+    console.log("fdadfafsdasdfdasf " , uploadPhotoDetail.names.length)
+
+    if(uploadPhotoDetail.names.length > 0){
+      const data = saveFileFullPath(uploadPhotoDetail);
+      data.then((r) =>{
+        console.log(r.data);
+        if(r.data.code == 200){
+          dialogVisible_photo.value = true;
+        }
+      })
+    }
+}
+
+const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
+  
+  let file = reactive({id:""});
+  file.id = uploadFile.id;
+  console.log("on-removeeeeee ", uploadFile, file)
+  let data = delFile(file);
+  data.then( (r) => {
+    console.log("resultttt ", r)
+    if(r.data.code == 200){
+      dialogVisible_photoDelete.value = true;
+    }
+  })
+}
+
+const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
+
+  let p = reactive({path:[]});
+  p.path.push(uploadFile.path) ;
+  console.log("pci revirewew ", p)
+
+  if(p.path[0] == null){
+      console.log("dfasdfasdfasdf ")
+      dialogVisible_cannotPreview.value = true;
+  }else{
+      let data = getAccessUrl(p);
+      data.then((r) => {
+        console.log("RRRRR", r.data.data[0].url)
+        dialogImageUrl.value = r.data.data[0].url
+        dialogVisiblePic.value = true
+      })
+  }
+}
+
+let imgwidth= ref();
+let boxWidth= ref();
+
+const onLoadImg = (e) => {
+  const img = e.target
+
+  if (img.fileSize > 0 || (img.width > 1 && img.height > 1)) {
+    imgwidth.value = img.width + 32
+    boxWidth.value = img.width
+    console.log("onlogadddd ", imgwidth.value)
+  }
+}
+</script>
+
+
+
 <template>
   <div>
     <h2>检测详情</h2>
+
+    <h3 class="titleSize">{{ content.testItemsName }}:</h3>
     <el-divider />
 
-    <div class="titleSize">{{ content.testItemsName }}: </div>
-    
-
     <el-table :data="content.children" border class="dataTable">
-      <el-table-column prop="testItemsName" label="检测参数" align="center"></el-table-column>
+      <el-table-column
+        prop="testItemsName"
+        label="检测参数"
+        align="center"
+      ></el-table-column>
 
-      <el-table-column prop="detectionResult" label="检测结果" v-if="flag" align="center">
+      <el-table-column
+        prop="detectionResult"
+        label="检测结果"
+        v-if="flag"
+        align="center"
+      >
         <template #default="scope">
-          {{ scope.row.detectionDetails ? scope.row.detectionDetails.detectionResult : "zanwu" }}
+          {{
+            scope.row.detectionDetails
+              ? scope.row.detectionDetails.detectionResult
+              : "--"
+          }}
         </template>
       </el-table-column>
 
-      <el-table-column prop="detectionResult" label="检测结果" v-if="!flag" align="center">
+      <el-table-column
+        prop="detectionResult"
+        label="检测结果"
+        v-if="!flag"
+        align="center"
+      >
         <template #default="scope">
           <el-input v-model="scope.row.detectionResult"> </el-input>
         </template>
       </el-table-column>
 
-      <el-table-column prop="detectionResult" label="是否符合要求" v-if="flag" align="center">
+      <el-table-column
+        prop="detectionResult"
+        label="是否符合要求"
+        v-if="flag"
+        align="center"
+      >
         <template #default="scope">
-          {{ scope.row.detectionDetails ? options[scope.row.detectionDetails.isFit].label : "sanwu"  }}
+          {{
+            scope.row.detectionDetails
+              ? op[scope.row.detectionDetails.isFit]
+              : "--"
+          }}
         </template>
       </el-table-column>
 
-      <el-table-column prop="isFit" label="是否符合要求" align="center" v-if="!flag">
+      <el-table-column
+        prop="isFit"
+        label="是否符合要求"
+        align="center"
+        v-if="!flag"
+      >
         <template #default="scope">
           <el-select v-model="scope.row.isFit" placeholder="--请选择--">
             <el-option
@@ -41,169 +277,97 @@
       </el-table-column>
     </el-table>
 
-    <el-divider />
 
-    <div class="titleSize2">现场图片:
-    
-        <el-button @click="isUpload=true" class="addPhoto">添加</el-button>
+    <div class="titleSize2">
+      现场图片:
+      <el-button type="primary" @click="isUpload = true" class="addPhoto" v-if="!isUpload && fileSize ==0 ">上传现场照片</el-button>
+      <el-button type="primary" @click="uploadPhoto()" v-if="isUpload || fileSize>0" class="addPhoto">保存现场照片</el-button>
     </div>
 
     <el-upload
-      
-        class="dragBox"
-        :before-upload="uploadFile"
-        :data="uploadData"
-        :action="uploadData.url"
-        multiple
-        drag
-        :on-preview="handlePreview"
-        :on-remove="handleRemove"
-        :before-remove="beforeRemove"
-        v-if="isUpload"
-        >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-        <div class="el-upload__text">
-            拖拽文件至此 或 <em>点击上传</em>
-        </div> 
+      multiple
+      drag
+      accept=".jpg,.jpeg,.png"
+      :show-file-list="true"
+      :file-list="content.pics"
+      class="dragBox"
+      :before-upload="uploadFile"
+      :data="uploadData"
+      :action="uploadData.url"
+      :on-remove="handleRemove"
+      :on-preview="handlePictureCardPreview"
+      v-if="isUpload || fileSize > 0"
+    >
+      <div class="el-upload__text">拖拽文件至此 或 <em>点击上传</em></div>
     </el-upload>
 
-    <div v-if="isUpload">
-        <el-button type="primary" @click="uploadPhoto()"  > 保存 </el-button>
-        <el-button  @click="editDetail()"  > 取消 </el-button>
-        <el-divider />
-    </div>
+    
 
-   
-    <el-button type="primary" @click="editDetail()" class="editBtn" v-if="flag"> 编辑 </el-button>
 
-    <el-button type="primary" @click="cancelBtn()" class="editBtn" v-if="!flag"> 取消 </el-button>
 
-    <el-button @click="saveDetail()" class="saveBtn"> 保存 </el-button>
+    <el-button  @click="editDetail()" class="editBtn" v-if="flag">
+      编辑
+    </el-button>
 
-    <el-button type="info" @click="goBackPage()" class="goBackBtn"> 返回 </el-button>
-  
+    <el-button  @click="cancelBtn()" class="editBtn" v-if="!flag">
+      取消
+    </el-button>
+
+    <el-button v-if="flag" class="saveBtn"> 保存 </el-button>
+    <el-button v-else @click="saveDetail()" class="saveBtn"> 保存 </el-button>
+
+    <el-button type="info" @click="goBackPage()" class="goBackBtn">
+      返回
+    </el-button>
   </div>
+
+  <!-- 上传照片预览  -->
+  <el-dialog v-model="dialogVisiblePic" :width="imgwidth" >
+    <img w-full :src="dialogImageUrl"  @load="onLoadImg" :width="boxWidth" />
+  </el-dialog>
+
+  <!-- 检测详情保存成功-->
+  <el-dialog v-model="dialogVisible_success" title="保存成功" width="30%">
+    <span>该分项检测详情保存成功！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="handleClick()">确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  <!-- 现场照片保存成功-->
+  <el-dialog v-model="dialogVisible_photo" title="保存成功" width="30%">
+    <span>现场照片保存成功！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="handleClick()">确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+     <!-- 现场照片删除成功-->
+  <el-dialog v-model="dialogVisible_photoDelete" title="删除成功" width="30%">
+    <span>现场照片成功删除！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="handleClick()">确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  <!-- 无法预览照片 -->
+  <el-dialog v-model="dialogVisible_cannotPreview" title="无法预览" width="30%">
+      <span>预览前请先保存现场照片！</span>
+      <template #footer>
+      <span class="dialog-footer">
+          <el-button type="primary" @click="dialogVisible_cannotPreview=false">确认</el-button>
+      </span>
+      </template>
+  </el-dialog>
 </template>
 
-<script lang="ts" setup>
-import { ref, onMounted, reactive, onChange } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { UploadFilled } from '@element-plus/icons-vue'
-import { getDetectionDetail, saveDetectionDetails, getUploadPathUrl, uploadPic } from "../../api/apiRequest";
-const router = useRouter();
-const route = useRoute();
 
-const requirement = ref();
-const flag = ref(true);
-const isUpload = ref(false);
-
-const options = [
-  {
-    value: 0,
-    label: "不符合",
-  },
-  {
-    value: 1,
-    label: "符合",
-  },
-];
-
-const data = {
-  id: route.query.id,
-  rootTestItemsId: route.query.rootTestItemsId,
-};
-
-const getURLdata = {
-    entrustmentDetailId: route.query.rootTestItemsId,
-    testItemsId: route.query.id,
-}
-
-const goBackPage = () => {
-  router.go(-1);
-};
-
-const saveResult = reactive([
-  {
-    calculationResult: "",
-    detectionResult: "",
-    entrustmentDetailId: 0,
-    id: 0,
-    isFit: "",
-    specificationLimit: "",
-    testItemsId: 0,
-    unit: "",
-  },
-]);
-
-const content = ref([]);
-const uploadData = reactive({
-  policy: "",
-  signature: "",
-  key: "",
-  OSSAccessKeyId: "",
-  url: ""
-});
-
-const onChange = (uploadFile, uploadFiles) => {
-    console.log("afdasffile <========> ", uploadFile);
-}
-
-const uploadFile = param => {
-
-    const getURL = getUploadPathUrl(getURLdata);
-    getURL.then((response) => {
-        uploadData.policy = response.data.data.policy;
-        uploadData.signature = response.data.data.signature;
-        uploadData.key = response.data.data.path + "/" +  param.name.split(".")[0];
-        uploadData.OSSAccessKeyId = response.data.data.accessKey;
-        uploadData.url = response.data.data.url;
-
-        console.log("URLRLRLRLR ", param.name.split(".")[0]);
-    })
-
-}
-
-onMounted(() => {
-  const callBack = getDetectionDetail(data);
-  callBack.then((response) => {
-    console.log("something in onMounted", response.data.data[0]);
-    content.value = response.data.data[0];
-  });
-
- 
-  
-});
-
-const saveDetail = () => {
-  console.log("1212312", fileList.value);
- 
-};
-
-const editDetail = () => {
-  flag.value = false;
-  console.log("hjhiahfaihf ", flag.value);
-};
-
-const cancelBtn = () => {
-    flag.value = true;
-}
-
-const uploadPhoto = () => {
-    
-    console.log("fdadfafsdasdfdasf " , data)
-    const r = uploadPic(uploadData)
-}
-
-const fileList = ref<UploadUserFile[]>();
-
-const handlePreview: UploadProps['onPreview'] = (uploadFile) => {
-  console.log(uploadFile)
-}
-
-const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
-  console.log(file, uploadFiles)
-}
-</script>
 
 <style scoped>
 .titleSize {
@@ -211,36 +375,36 @@ const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
   margin-top: 25px;
 }
 
-.titleSize2{
-    font-size: 18px;
-    margin-top: 50px;
+.titleSize2 {
+  font-size: 18px;
+  margin-top: 50px;
 }
 
-.addPhoto{
-    margin-left: 24px;
+.addPhoto {
+  margin-left: 24px;
 }
 
-.dragBox{
-    margin-top: 24px;
+.dragBox {
+  margin-top: 24px;
 }
 
 .editBtn {
-  margin-top: 240px;
+  margin-top: 80px;
   margin-left: 24%;
 }
 
 .goBackBtn {
-  margin-top: 240px;
+  margin-top: 80px;
   margin-left: 320px;
 }
 
 .saveBtn {
-  margin-top: 240px;
+  margin-top: 80px;
   margin-left: 320px;
 }
 
 .dataTable {
-    font-size: 15px;
+  font-size: 15px;
   width: 100%;
   margin-top: 64px;
 }
@@ -296,11 +460,5 @@ const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
         
         
       </el-descriptions-item>
-
-     
-
-      
-
-
      
     </el-descriptions> -->

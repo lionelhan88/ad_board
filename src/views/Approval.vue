@@ -1,409 +1,3 @@
-<template>
-
-   <div>
-   <h3 class="header1">委托详情   
-    <el-button
-      type="primary"
-      @click="searchFacility()"
-      class="searchFacility"
-      v-if="!flag"
-    >选择设施</el-button>
-   
-   </h3>
-    <el-descriptions class="margin-top" :column="4" border >
-    
-      <el-descriptions-item align="center">
-        <template #label>
-          <div class="cell-item">委托编号</div>
-        </template>
-        {{entrustmentInfo.entrustmentNo ? entrustmentInfo.entrustmentNo : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>报告编号</div>
-        </template>
-        {{info.reportNo ? info.reportNo : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>校验码</div>
-        </template>
-        {{info.checkCode ? info.checkCode : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>委托日期</div>
-        </template>
-        {{entrustmentInfo.entrustmentDate ? entrustmentInfo.entrustmentDate.slice(0,10) : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div class="cell-item">检测类型</div>
-        </template>
-        <span v-if="flag">
-          {{entrustmentInfo.detectionType ? detectionType_option[entrustmentInfo.detectionType-1].label : "暂无结果" }}
-        </span>
-        <el-select
-          v-model="entrustmentInfo.detectionType"
-          clearable
-          placeholder="--请选择--"
-          v-if="!flag"
-
-        >
-          <el-option
-            v-for="item in detectionType_option"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>委托单位</div>
-        </template>
-        <span v-if="flag">
-          {{entrustmentInfo.client ? entrustmentInfo.client : "暂无结果" }}
-        </span>
-        <el-input
-              v-model="entrustmentInfo.client "
-              v-if="!flag"
-            />
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>店铺名称</div>
-        </template>
-        {{info.shopName ? info.shopName : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>设施名称</div>
-        </template>
-        {{info.facilityName ? info.facilityName : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div class="cell-item">设施编号</div>
-        </template>
-        {{info.facilityNo ? info.facilityNo : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>设施地点</div>
-        </template>
-        {{info.detailedAddress ? info.detailedAddress : "暂无结果" }}      
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>设施类型</div>
-        </template>
-         <span v-if="flag">
-          {{info.facilityType ? facilityType[info.facilityType-1].label : "暂无结果" }}
-        </span>
-        <el-select
-          v-model="info.facilityType"
-          clearable
-          placeholder="--请选择--"
-          v-if="!flag"
-        >
-          <el-option
-            v-for="item in facilityType"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>  
-      </el-descriptions-item>
-
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>设计单位</div>
-        </template>
-        <span v-if="flag">
-          {{info.designCompany ? info.designCompany : "暂无结果" }}
-        </span>
-        <el-input
-              v-model="info.designCompany"
-              v-if="!flag"
-            />  
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div class="cell-item">施工单位</div>
-        </template>
-   
-        {{info.constructionUnitName ? info.constructionUnitName : "暂无结果" }}
-  
-
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>监理单位</div>
-        </template>
-        <span v-if="flag">
-          {{info.supervisionCompany ? info.supervisionCompany : "暂无结果" }}
-        </span>
-        <el-input
-              v-model="info.supervisionCompany"
-              v-if="!flag"
-            /> 
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>行政区域</div>
-        </template>
-        {{info.areaName ? info.areaName : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div >创建用户</div>
-        </template>
-        {{info.creator ? info.creator : "暂无结果"}}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div class="cell-item">检测开始时间</div>
-        </template>
-        <span v-if="flag">
-          {{dateFormat(info.detectionStartTime).slice(0,10)}}
-        </span>
-
-        <el-config-provider :locale="locale" v-if="!flag">
-          <el-date-picker
-            v-model="info.detectionStartTime"
-            type="date"
-            placeholder="点击图标选择日期"
-            clearable="true"
-            :disabledDate="disabledDate"
-          >
-          </el-date-picker>
-        </el-config-provider>
-        
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>检测结束时间</div>
-        </template>
-        <span v-if="flag">
-    
-          {{dateFormat(info.detectionEndTime).slice(0,10)}}
-        </span>
-
-        <el-config-provider :locale="locale" v-if="!flag">
-          <el-date-picker
-            v-model="info.detectionEndTime"
-            type="date"
-            placeholder="点击图标选择日期"
-            clearable="true"
-            :disabledDate="disabledEndDate"
-          >
-          </el-date-picker>
-        </el-config-provider>
-        
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div >创建时间</div>
-        </template>
-        {{info.insertTime ? info.insertTime.slice(0,10) : "暂无结果" }}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div >修改时间</div>
-        </template>
-        {{info.updateTime ? info.updateTime.slice(0,10) : "暂无结果"}}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center" >
-        <template #label>
-          <div class="cell-item">修改用户</div>
-        </template>
-        {{info.modifier ? info.modifier : "暂无结果"}}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div >审核状态</div>
-        </template>
-        {{finished[info.status]}}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="center">
-        <template #label>
-          <div>批准状态</div>
-        </template>
-        {{approvalStatus[info.approval]}}
-      </el-descriptions-item>
-
-      <el-descriptions-item/>
-
-      
-
-      <el-descriptions-item align="left" span="4">
-        <template #label>
-          <div class="cell-item" align="center">检测方法</div>
-        </template>
-
-        <span v-if="flag">
-          <span v-if="info.testMethods == null"> 暂无结果 </span>
-          <span v-else :keys="item" v-for="item in info.testMethods" align="center" >
-            {{item.name}}; 
-          </span>
-          
-        </span>
-
-        <el-select
-              v-model="info.testMethodsId"
-              multiple
-              collapse-tags
-              collapse-tags-tooltip
-              placeholder="请选择"
-              v-if="!flag"
-            >
-              <el-checkbox-group v-model="info.testMethodsId">
-                <el-option
-                  v-for="item in initOption"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                >
-                </el-option>
-              </el-checkbox-group>
-            </el-select>
-
-      </el-descriptions-item>
-
-    
-
-      <el-descriptions-item align="left" label-align="center" span="4">
-        <template #label>
-          <div class="cell-item">综合等级</div>
-        </template>
-        {{info.comprehensiveGrade ? grade[info.comprehensiveGrade-1] : "暂无结果"}}
-      </el-descriptions-item>
-
-      <el-descriptions-item align="left" span="4">
-        <template #label>
-          <div class="cell-item" align="center">检测结果</div>
-        </template>
-        {{info.detectionResult ? info.detectionResult : "暂无结果"}}
-      </el-descriptions-item>
-
-      
-    </el-descriptions>
-
-    <el-button class="editBtn" @click="startEdit()" v-if="flag">编辑</el-button>
-    <el-button class="saveBtn"  @click="saveEdit()" v-if="!flag">保存</el-button>
-    <el-button class="cancelBtn" @click="cancelEdit()">取消</el-button>
-    <el-button class="approveBtn"  @click="approve()">批准</el-button>
-    <el-button class="reportBtn" @click="reportPage()" >报告</el-button>
-    <el-button class="returnBtn" @click="returnPage()" >返回</el-button>
-
-    <!-- 委托未批准弹窗 -->
-    <el-dialog v-model="dialogVisible_approval" title="委托未批准" width="30%">
-      <span>委托未批准，无法生成报告！</span>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="dialogVisible_approval= false"
-            >确认</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <!-- 委托未审核弹窗 -->
-    <el-dialog v-model="dialogVisible_finish" title="委托未批准" width="30%">
-      <span>委托还未进行审核，无法进行批准！</span>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="dialogVisible_finish= false"
-            >确认</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <!-- 委托批准弹窗 -->
-    <el-dialog v-model="dialogVisible_approved" title="委托批准" width="30%">
-      <span>委托已批准！</span>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="handleClick"
-            >确认</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-
-  <!-- 委托已批准,无法编辑弹窗-->
-  <el-dialog v-model="dialogVisible_already" title="无法编辑" width="30%">
-    <span>该委托已被批准，无法进行编辑操作！</span>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button type="primary" @click="dialogVisible_already= false"
-          >确认</el-button>
-      </span>
-    </template>
-  </el-dialog>
-
-  <!-- 委托已审核,无法编辑弹窗-->
-  <el-dialog v-model="dialogVisible_status" title="无法编辑" width="30%">
-    <span>该委托已被审核，无法进行编辑操作！</span>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button type="primary" @click="dialogVisible_status= false"
-          >确认</el-button>
-      </span>
-    </template>
-  </el-dialog>
-
-  <!-- 委托取消批准弹窗-->
-  <el-dialog v-model="dialogVisible_alreadyApproved" title="取消批准成功" width="30%">
-    <span>该委托已取消批准！</span>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button type="primary" @click="handleClick()"
-          >确认</el-button>
-      </span>
-    </template>
-  </el-dialog>
-
-  <!-- 委托详情修改已保存-->
-  <el-dialog v-model="dialogVisible_editSuccess" title="保存成功" width="30%">
-    <span>委托修改信息已被保存！</span>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button type="primary" @click="handleClick()"
-          >确认</el-button>
-      </span>
-    </template>
-  </el-dialog>
-
-  </div>
-
-  
-</template>
-
-
-
 <script lang="ts" setup>
 
 import { reactive, ref, onMounted , getCurrentInstance } from "vue";
@@ -676,9 +270,410 @@ const disabledDate = (time: Date) => {
 const disabledEndDate = (time: Date) => {
   return time.getTime() + 3600 * 1000 * 24  < Date.now();
 };
-
-
 </script>
+
+
+<template>
+   <div>
+   <h3 class="header1">委托详情   
+    <el-button
+      type="primary"
+      @click="searchFacility()"
+      class="searchFacility"
+      v-if="!flag"
+    >选择设施</el-button>
+   
+   </h3>
+    <el-descriptions class="margin-top" :column="4" border >
+    
+      <el-descriptions-item align="center">
+        <template #label>
+          <div class="cell-item">委托编号</div>
+        </template>
+        {{entrustmentInfo.entrustmentNo ? entrustmentInfo.entrustmentNo : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>报告编号</div>
+        </template>
+        {{info.reportNo ? info.reportNo : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>校验码</div>
+        </template>
+        {{info.checkCode ? info.checkCode : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>委托日期</div>
+        </template>
+        {{entrustmentInfo.entrustmentDate ? entrustmentInfo.entrustmentDate.slice(0,10) : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div class="cell-item">检测类型</div>
+        </template>
+        <span v-if="flag">
+          {{entrustmentInfo.detectionType ? detectionType_option[entrustmentInfo.detectionType-1].label : "暂无结果" }}
+        </span>
+        <el-select
+          v-model="entrustmentInfo.detectionType"
+          clearable
+          placeholder="--请选择--"
+          v-if="!flag"
+
+        >
+          <el-option
+            v-for="item in detectionType_option"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>委托单位</div>
+        </template>
+        <span v-if="flag">
+          {{entrustmentInfo.client ? entrustmentInfo.client : "暂无结果" }}
+        </span>
+        <el-input
+              v-model="entrustmentInfo.client "
+              v-if="!flag"
+            />
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>店铺名称</div>
+        </template>
+        {{info.shopName ? info.shopName : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>设施名称</div>
+        </template>
+        {{info.facilityName ? info.facilityName : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div class="cell-item">设施编号</div>
+        </template>
+        {{info.facilityNo ? info.facilityNo : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>设施地点</div>
+        </template>
+        {{info.detailedAddress ? info.detailedAddress : "暂无结果" }}      
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>设施类型</div>
+        </template>
+         <span v-if="flag">
+          {{info.facilityType ? facilityType[info.facilityType-1].label : "暂无结果" }}
+        </span>
+        <el-select
+          v-model="info.facilityType"
+          clearable
+          placeholder="--请选择--"
+          v-if="!flag"
+        >
+          <el-option
+            v-for="item in facilityType"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>  
+      </el-descriptions-item>
+
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>设计单位</div>
+        </template>
+        <span v-if="flag">
+          {{info.designCompany ? info.designCompany : "暂无结果" }}
+        </span>
+        <el-input
+              v-model="info.designCompany"
+              v-if="!flag"
+            />  
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div class="cell-item">施工单位</div>
+        </template>
+   
+        {{info.constructionUnitName ? info.constructionUnitName : "暂无结果" }}
+  
+
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>监理单位</div>
+        </template>
+        <span v-if="flag">
+          {{info.supervisionCompany ? info.supervisionCompany : "暂无结果" }}
+        </span>
+        <el-input
+              v-model="info.supervisionCompany"
+              v-if="!flag"
+            /> 
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>行政区域</div>
+        </template>
+        {{info.areaName ? info.areaName : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div >创建用户</div>
+        </template>
+        {{info.creator ? info.creator : "暂无结果"}}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div class="cell-item">检测开始时间</div>
+        </template>
+        <span v-if="flag">
+          {{dateFormat(info.detectionStartTime).slice(0,10)}}
+        </span>
+
+        <el-config-provider :locale="locale" v-if="!flag">
+          <el-date-picker
+            v-model="info.detectionStartTime"
+            type="date"
+            placeholder="点击图标选择日期"
+            clearable="true"
+            :disabledDate="disabledDate"
+          >
+          </el-date-picker>
+        </el-config-provider>
+        
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>检测结束时间</div>
+        </template>
+        <span v-if="flag">
+          {{dateFormat(info.detectionEndTime).slice(0,10)}}
+        </span>
+
+        <el-config-provider :locale="locale" v-if="!flag">
+          <el-date-picker
+            v-model="info.detectionEndTime"
+            type="date"
+            placeholder="点击图标选择日期"
+            clearable="true"
+            :disabledDate="disabledEndDate"
+          >
+          </el-date-picker>
+        </el-config-provider>
+        
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div >创建时间</div>
+        </template>
+        {{info.insertTime ? info.insertTime.slice(0,10) : "暂无结果" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div >修改时间</div>
+        </template>
+        {{info.updateTime ? info.updateTime.slice(0,10) : "暂无结果"}}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center" >
+        <template #label>
+          <div class="cell-item">修改用户</div>
+        </template>
+        {{info.modifier ? info.modifier : "暂无结果"}}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div >审核状态</div>
+        </template>
+        {{finished[info.status]}}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center">
+        <template #label>
+          <div>批准状态</div>
+        </template>
+        {{approvalStatus[info.approval]}}
+      </el-descriptions-item>
+
+      <el-descriptions-item/>
+
+      <el-descriptions-item align="left" span="4">
+        <template #label>
+          <div class="cell-item" align="center">检测方法</div>
+        </template>
+
+        <span v-if="flag">
+          <span v-if="info.testMethods == null"> 暂无结果 </span>
+          <span v-else :keys="item" v-for="item in info.testMethods" align="center" >
+            {{item.name}}; 
+          </span>
+        </span>
+
+        <el-select
+              v-model="info.testMethodsId"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="请选择"
+              v-if="!flag"
+            >
+              <el-checkbox-group v-model="info.testMethodsId">
+                <el-option
+                  v-for="item in initOption"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-checkbox-group>
+            </el-select>
+      </el-descriptions-item>
+
+    
+
+      <el-descriptions-item align="left" label-align="center" span="4">
+        <template #label>
+          <div class="cell-item">综合等级</div>
+        </template>
+        {{info.comprehensiveGrade ? grade[info.comprehensiveGrade-1] : "暂无结果"}}
+      </el-descriptions-item>
+
+      <el-descriptions-item align="left" span="4">
+        <template #label>
+          <div class="cell-item" align="center">检测结果</div>
+        </template>
+        {{info.detectionResult ? info.detectionResult : "暂无结果"}}
+      </el-descriptions-item>
+
+      
+    </el-descriptions>
+
+    <el-button class="editBtn" @click="startEdit()" v-if="flag">编辑</el-button>
+    <el-button class="saveBtn"  @click="saveEdit()" v-if="!flag">保存</el-button>
+    <el-button class="cancelBtn" @click="cancelEdit()">取消</el-button>
+    <el-button class="approveBtn"  @click="approve()">批准</el-button>
+    <el-button class="reportBtn" @click="reportPage()" >报告</el-button>
+    <el-button class="returnBtn" @click="returnPage()" >返回</el-button>
+
+    <!-- 委托未批准弹窗 -->
+    <el-dialog v-model="dialogVisible_approval" title="委托未批准" width="30%">
+      <span>委托未批准，无法生成报告！</span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="dialogVisible_approval= false"
+            >确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 委托未审核弹窗 -->
+    <el-dialog v-model="dialogVisible_finish" title="委托未批准" width="30%">
+      <span>委托还未进行审核，无法进行批准！</span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="dialogVisible_finish= false"
+            >确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 委托批准弹窗 -->
+    <el-dialog v-model="dialogVisible_approved" title="委托批准" width="30%">
+      <span>委托已批准！</span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="handleClick"
+            >确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+
+  <!-- 委托已批准,无法编辑弹窗-->
+  <el-dialog v-model="dialogVisible_already" title="无法编辑" width="30%">
+    <span>该委托已被批准，无法进行编辑操作！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="dialogVisible_already= false"
+          >确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  <!-- 委托已审核,无法编辑弹窗-->
+  <el-dialog v-model="dialogVisible_status" title="无法编辑" width="30%">
+    <span>该委托已被审核，无法进行编辑操作！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="dialogVisible_status= false"
+          >确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  <!-- 委托取消批准弹窗-->
+  <el-dialog v-model="dialogVisible_alreadyApproved" title="取消批准成功" width="30%">
+    <span>该委托已取消批准！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="handleClick()"
+          >确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  <!-- 委托详情修改已保存-->
+  <el-dialog v-model="dialogVisible_editSuccess" title="保存成功" width="30%">
+    <span>委托修改信息已被保存！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="handleClick()"
+          >确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  </div>
+
+  
+</template>
+
+
+
+
 
 <style scoped lang="scss">
 .editBtn {

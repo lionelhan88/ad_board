@@ -4,24 +4,14 @@
     
   </div>
 </template>
-<script>
+<script lang='ts' setup>
   
 </script>
 <style>
 
 </style>
-<!-- 
-
-      
-
-
-
- 
-      
+<!--  
       <el-row>
-
-        
-
         <el-col :span="24">
           <el-form-item label="检测方法 :" prop="testMethodsId">
             <el-tree
@@ -37,9 +27,7 @@
             />
           </el-form-item>
         </el-col >
-        
-        
       </el-row>
-
-
        -->
+
+ 

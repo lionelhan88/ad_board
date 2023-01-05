@@ -238,9 +238,6 @@ const resultSaveFailed = ref(false);
 watch(
   () => [...evaluationList.value],
   (newVal, oldVal) => {
-    console.log("================================== ", data.id);
-    console.log(newVal, oldVal);
-
     if (
       evaluationList.value.every(
         (evaluationList) => evaluationList.level in [1, 2, 3, 4]
@@ -306,7 +303,6 @@ watch(
           arr = evaluationList.value.filter(
               (evaluationList) => evaluationList.level == 2
           );
-          console.log("fafdasfdasf ", arr);
           if (arr.length <= 2) {
             comprehensiveGrade.value = 1;
             detectionResult.value = finalContent[0];
@@ -324,7 +320,38 @@ watch(
         comprehensiveGrade.value = 2;
         detectionResult.value = finalContent[1];
       }   
-    }  
+    }  else if (newVal[0].level != undefined && newVal[1].level != undefined && newVal[2].level != undefined 
+      && newVal[3].level != undefined && newVal[4].level != undefined ){
+        if (
+          evaluationList.value[0].level == 1 && evaluationList.value[1].level == 1 &&
+          evaluationList.value[2].level == 1 && evaluationList.value[3].level == 1 &&
+          evaluationList.value[4].level == 1
+        ){
+          comprehensiveGrade.value = 1;
+          detectionResult.value = finalContent[0];
+        }else if( evaluationList.value[0].level == 3 || evaluationList.value[1].level == 3 ||
+          evaluationList.value[2].level == 3 || evaluationList.value[3].level == 3 ||
+          evaluationList.value[4].level == 3 )
+        {
+          comprehensiveGrade.value = 3;
+          detectionResult.value = finalContent[2];
+        }else if ( evaluationList.value[3].level == 1 ){
+          arr = evaluationList.value.filter(
+              (evaluationList) => evaluationList.level == 2
+          );
+          if (arr.length <= 2) {
+            comprehensiveGrade.value = 1;
+            detectionResult.value = finalContent[0];
+          }else{
+            comprehensiveGrade.value = 2;
+            detectionResult.value = finalContent[1];
+          }
+        }else{
+          comprehensiveGrade.value = 2;
+          detectionResult.value = finalContent[1];
+        }   
+
+      }
   },
   { deep: true }
 );
@@ -355,64 +382,40 @@ const returnPage = () => {
 
 const EvaDetail = (index) => {
   console.log(" details ", index);
-  switch(index){
-    case 0:
-      console.log("detail clicked ", index, " <---> 1", data, evaluationList.value[index]);
-      router.push({
-        name: "detail1",
-        query:{
-          id: evaluationList.value[index].entrustmentDetailId,
-          rootTestItemsId: evaluationList.value[index].id,
-        }
-      })
-      break;
-    case 1:
-      console.log("detail clicked ", index, " <---> 2", evaluationList.value[index]);
-
-      
-
-      break;
-    case 2:
-      console.log("detail clicked ", index, " <---> 3",  evaluationList.value[index].id, evaluationList.value[index].entrustmentDetailId);
-
-      break;
-    case 3:
-
-      router.push({
-        name: "detail1",
-        query:{
-          id: evaluationList.value[index].entrustmentDetailId,
-          rootTestItemsId: evaluationList.value[index].id,
-        }
-      })
-      console.log("detail clicked ", index, " <---> 4", evaluationList.value[index].id, evaluationList.value[index].entrustmentDetailId);
-      break;
-    case 4:
-      console.log("detail clicked ", index, " <---> 5", evaluationList.value[index].id, evaluationList.value[index].entrustmentDetailId);
-
-      router.push({
-        name: "detail1",
-        query:{
-          id: evaluationList.value[index].entrustmentDetailId,
-          rootTestItemsId: evaluationList.value[index].id,
-        }
-      })
-      break;
-    case 5:
-      console.log("detail clicked ", index, " <---> 6", evaluationList.value[index].id, evaluationList.value[index].entrustmentDetailId);
-      break;
-    case 6:
-      console.log("detail clicked ", index, " <---> 7", evaluationList.value[index].id, evaluationList.value[index].entrustmentDetailId);
-      router.push({
-        name: "detail1",
-        query:{
-          id: evaluationList.value[index].entrustmentDetailId,
-          rootTestItemsId: evaluationList.value[index].id,
-        }
-      })
-      break;
-
+  if(index == 0 || index == 3 || index == 4 ){
+    router.push({
+      name: "detail1",
+      query:{
+        id: evaluationList.value[index].entrustmentDetailId,
+        rootTestItemsId: evaluationList.value[index].id,
+      }
+    })
+  }else if(index == 1){
+    router.push({
+      name: "detail2",
+      query:{
+        id: evaluationList.value[index].entrustmentDetailId,
+        rootTestItemsId: evaluationList.value[index].id,
+      }
+    })
+  }else if(index == 2 || index == 5){
+    router.push({
+      name: "detail3",
+      query:{
+        id: evaluationList.value[index].entrustmentDetailId,
+        rootTestItemsId: evaluationList.value[index].id,
+      }
+    })
+  }else if(index == 6 ){
+    router.push({
+      name: "detail4",
+      query:{
+        id: evaluationList.value[index].entrustmentDetailId,
+        rootTestItemsId: evaluationList.value[index].id,
+      }
+    })
   }
+  
 
 };
 </script>

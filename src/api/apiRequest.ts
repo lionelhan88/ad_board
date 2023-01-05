@@ -221,11 +221,11 @@ export const getUploadPathUrl = (data : object) =>{
     })
 }
 
-// 获取文件下载地址
-export const uploadPic = (data : object) =>{
+// 保存文件全路径
+export const saveFileFullPath = (data : object) =>{
 
     return service.request({
-        url: 'https://oss.shcetia.com',
+        url: '/api/file/saveFileFullPath',
         method: 'post',
         headers:{
             "Authorization": storage.get('token') ?? '',
@@ -233,3 +233,32 @@ export const uploadPic = (data : object) =>{
         data,
     })
 }
+
+// 删除上传的图片
+export const delFile = (data : object) =>{
+
+    return service.request({
+        url: '/api/file/delFile',
+        method: 'post',
+        headers:{
+            "Authorization": storage.get('token') ?? '',
+        },
+        data,
+    })
+}
+
+
+// 获取图片下载链接
+export const getAccessUrl = (data : object) =>{
+
+    return service.request({
+        url: '/api/file/getAccessUrl',
+        method: 'post',
+        headers:{
+            "Authorization": storage.get('token') ?? '',
+        },
+        data,
+    })
+}
+
+

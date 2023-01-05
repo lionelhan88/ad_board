@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { reactive, ref, getCurrentInstance } from 'vue'
+import { reactive, ref, getCurrentInstance, computed } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRouter, useRoute } from "vue-router"
 import Security from '../components/security.vue'
 import {
-
   Comment,
   User,
   InfoFilled,
@@ -19,8 +18,8 @@ const dialogVisible1 = ref(false)
 
 const ruleFormRef = ref<FormInstance>()
 const ruleForm = reactive({
-  userName: 't9990001',
-  pwd:'1',
+  userName: '',
+  pwd:'',
   code:"",
   codeKey:"",
 })
@@ -40,7 +39,6 @@ const rules = reactive<FormRules>({
   
 })
 
-
 //================================= axios请求 ====================================
 const currentInstance = getCurrentInstance();
 const { $axios } = currentInstance.appContext.config.globalProperties;
@@ -56,9 +54,10 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid, fields) => {
     if (valid) {
-      ruleForm.codeKey = securityRefs.value.codeKey;
+      ruleForm.codeKey = storage.get("codeKey");
       const { userName, pwd, code } = ruleForm;
       const data = loginAction(ruleForm);
+      console.log("datatatata ", ruleForm);
       
       data.then( (response) => {
         const returnData = response.data;
@@ -67,26 +66,17 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         if(returnData.resultCode == 60014 || returnData.resultCode == 60013){
           dialogVisible1.value = true;
           msg.value += 1;
-          console.log("msggggggggg " + msg.value)
           formEl.resetFields()
         }else if (returnData.code == 200){
           const token = "Bearer " + returnData.data.token;
-
-          
-          
           storage.set("token", token);
-
           const a = storage.get("token");
-           console.log("打印Token-----",a);
-
           router.push({ 
             name: "home",
           }); 
         }else{
           dialogVisible.value = true;
-          formEl.resetFields()
         }
-        
       });
 
     } else {
@@ -103,9 +93,12 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 </script>
 
+<!--   -->
+
 <template>
   
   <div class="login_container">
+
   
     <div class="login_header">
     上 海 市 建 设 工 程 检 测 信 息 管 理 系 统</div> 
@@ -122,10 +115,11 @@ const resetForm = (formEl: FormInstance | undefined) => {
 
       <!-- 输入用户名-->
         <el-form-item label="账号" prop="userName" >
+        
           <el-input label="inputname" v-model="ruleForm.userName"
-            placeholder="请输入登录账号"  class="loginBox">
-            console.log(ruleForm.username)
+            placeholder="请输入登录账号"  class="loginBox" >
           </el-input>
+          
         </el-form-item>
 
       <!-- 输入密码-->

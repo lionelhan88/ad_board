@@ -74,9 +74,7 @@
               class="jw"
             />
           </el-form-item>
-        
         </el-col>
-
       </el-row>
       
 
@@ -89,22 +87,20 @@
       >
       <!--重置按钮-->
       <el-button class="resetBtn" @click="resetForm(ruleFormRef)"
-        >重置</el-button
-      >
+        >重置</el-button>
     </el-form>
-    
   </div>
  
 
  <div>
     <el-divider/>
-    <h3 class="header1">查询列表</h3>
+    <h3 class="header1">查询列表  </h3>
   
     <el-table :data="content" :header-cell-style="{background:'#606266',color:'#eee'}" border  #default="props">
       
       <el-table-column label="委托编号" prop="entrustmentInfoVo.entrustmentNo" 
         align="center" style="font-weight:bold"
-      />
+      ></el-table-column>
 
       <el-table-column label="委托单位" prop="entrustmentInfoVo.client" align="center" />
 
@@ -131,15 +127,12 @@
       </el-table-column>
 
       <el-table-column label="操作" align="center" #default="props">
-
         <el-checkbox-button class="testRsltBtn"  label="审核" 
         @change="handleChange($event, props)"
-        :checked= props.row.status 
-        :true-label= props.row.status
-        :false-label= props.row.status
+       
         > </el-checkbox-button>
-        
-        <el-button class="approvalBtn" @click="approval(props)">批准</el-button>
+       
+        <el-button class="approvalBtn" @click="approval(props)">批准  </el-button>
       </el-table-column>
 
     </el-table>
@@ -232,6 +225,7 @@ const router = useRouter();
 const route = useRoute();
 const token = storage.get('token');
 import { storage } from '../utils/storage.ts'
+let stata = ref();
 
 const ruleForm = reactive({
   client: "",
@@ -311,6 +305,8 @@ onMounted( () => {
   callBack.then((response) => {
     content.value = response.data.data.records;
     total.value = response.data.data.total;
+
+    stata.value = response.data.data.records.status == 1 ? false : true;
   })
 })
 

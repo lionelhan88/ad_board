@@ -5,6 +5,7 @@ import Evaluation from '../views/evaluate/Evaluation.vue'
 import Approval from '../views/Approval.vue'
 import Report from '../views/Report.vue'
 import test from '../views/test.vue'
+import CreateTrustVue from "../views/CreateTrust.vue";
 import detail1 from '../views/evaluate/detail1.vue'
  
 let routes= [
@@ -71,7 +72,24 @@ let routes= [
         path: '/detail1',
         name: 'detail1',
         component: () => import('../views/evaluate/detail1.vue'),
-      }
+      },
+      {
+        path: '/detail2',
+        name: 'detail2',
+        component: () => import('../views/evaluate/detail2.vue'),
+      },
+
+      {
+        path: '/detail3',
+        name: 'detail3',
+        component: () => import('../views/evaluate/detail3.vue'),
+      },
+
+      {
+        path: '/detail4',
+        name: 'detail4',
+        component: () => import('../views/evaluate/detail4.vue'),
+      },
     ]
   },
   
