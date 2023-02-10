@@ -30,20 +30,25 @@ let routes= [
         component: () => import('../views/CreateTrust.vue')  
       },
       { 
+        
         path: '/home/createTrust/selectFacility', 
         name: 'selectFacility',
         component: () => import('../views/SelectFacility.vue')  
       },
       { 
+        
         path: '/home/createTrust/selectShop', 
         name: 'selectShop',
+        meta:{
+          keepAlive: true,
+        },
         component: () => import('../views/SelectShop.vue')  
       },
       {
         name: 'searchTrust',
         path: '/home/searchTrust', 
-        meta: { keepAlive: true, isBack: true},
         component: () => import('../views/SearchTrust.vue') ,
+        meta: { keepAlive: true, isBack: true},
       },
       {
         path: '/home/result',

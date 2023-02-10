@@ -3,13 +3,14 @@
 import { reactive, ref, onMounted , getCurrentInstance } from "vue";
 import { useRouter, useRoute } from "vue-router"
 import { toRaw } from '@vue/reactivity'
+import { ElMessage, ElLoading } from 'element-plus'
 
 const route = useRoute();
 const router = useRouter();
 const data = route.query;
 const info = ref([]);
 const entrustmentInfo = ref([]);
-const finished = ["未审核", "完成审核"];
+const finished = ["未审核", "已审核"];
 const grade = ["A", "B", "C"];
 const approvalStatus = ["未批准", "已批准"];
 
@@ -45,13 +46,15 @@ const detectionType_option = [{
 
 const currentInstance = getCurrentInstance();
 const { $axios } = currentInstance.appContext.config.globalProperties;
-import { getRslt, exportPdf, approvalById, getAllMethods, detailUpdate } from '../api/apiRequest';
+import { getRslt, exportPdf, approvalById, getAllMethods, detailUpdate, finishProject, upReport } from '../api/apiRequest';
 import { storage } from '../utils/storage'
 
 const approval = ref();
 const status = ref();
 
 const flag = ref(true);
+const isEditing = ref();
+const uploadReport = ref(false);
 
 const dialogVisible_finish = ref(false);
 const dialogVisible_approval = ref(false);
@@ -59,70 +62,98 @@ const dialogVisible_approved = ref(false);
 const dialogVisible_already = ref(false);
 const dialogVisible_editSuccess = ref(false);
 const dialogVisible_alreadyApproved = ref(false);
+const dialogVisible_audit = ref(false);
+const dialogVisible_cannotFinish = ref(false);
 const dialogVisible_status = ref(false);
 
 const callBack = ref("");
 const content = ref();
 const initOption = ref([]);
+const docList = ref([]);
 
 let newEntrustId = {id: ""} ;
 
+const uploadData = reactive({
+  policy: "",
+  signature: "",
+  key: "",
+  OSSAccessKeyId: "",
+  url:"",
+});
+
 //================================ 加载页面前获取数据并赋值 ==================================
 onMounted( () => {
+    if(data.ticket != null){
+      newEntrustId.id = data.ticket
+      const detail = getRslt(newEntrustId);
+      detail.then( (response) => {
+        info.value = response.data.data;
+        info.value.constructionCopmany = data.constructionUnitName;
+        info.value.areaName = data.areaName;
+        info.value.facilityNo = data.id;
+        info.value.detailedAddress = data.address;
+        info.value.shopName = data.name;
+        info.value.facilityName = data.signName;
+        info.value.facilityPics = data.facilityPics;
+        info.value.facilityPosition = data.facilityPosition;
+        info.value.facilityStructureType = data.facilityStructureType;
+        approval.value = response.data.data.approval;
+        status.value = response.data.data.status;
+        entrustmentInfo.value = response.data.data.entrustmentInfoVo;
+        if(approval.value == 1 && status.value == 1){
+          uploadReport.value = true;
+        }
+        if(data.editing == 1){
+          
+          flag.value = false;
+          //isEditing.value = false;
+          
+          data.editing = 0;
+        }
 
-  
-  if(data.ticket != null){
-    newEntrustId.id = data.ticket
-    console.log("receivedddddddddd123 ", data, newEntrustId)
-    
-    const detail = getRslt(newEntrustId);
-    detail.then( (response) => {
-      info.value = response.data.data;
-      info.value.constructionUnitName = data.constructionUnitName;
-      info.value.areaName = data.areaName;
-      info.value.facilityNo = data.id;
-      info.value.detailedAddress = data.address;
-      info.value.shopName = data.name;
-      info.value.facilityName = data.signName;
-      approval.value = response.data.data.approval;
-      status.value = response.data.data.status;
-      entrustmentInfo.value = response.data.data.entrustmentInfoVo;
-    });
+        
+      });
 
-  }else{
-    const detail =  getRslt(data);
-    
-    detail.then( (response) => {
-      console.log("detailssl " , response.data.data)
-      info.value = response.data.data;
-      approval.value = response.data.data.approval;
-      status.value = response.data.data.status;
-      entrustmentInfo.value = response.data.data.entrustmentInfoVo;
-    });
-  }
-  
-
+    }else{
+      const detail =  getRslt(data);
+      
+      detail.then( (response) => {
+        info.value = response.data.data;
+        approval.value = response.data.data.approval;
+        status.value = response.data.data.status;
+        entrustmentInfo.value = response.data.data.entrustmentInfoVo;
+        if(approval.value == 1 && status.value == 1){
+          uploadReport.value = true;
+        }
+      });
+    }
 })
 
 
 //====================================== 路由跳转 ===========================================
 const reportPage = () => {
-
   if(status.value == 1 && approval.value == 1){
-
     const outputData = exportPdf(data);
     const pdfData = ref('');
-    
+    const loading = ElLoading.service({
+      lock: true,
+      text: '报告加载中，请稍后',
+      background: 'rgba(0,0,0,0.7)',
+    })
+
     outputData.then((response) =>{
       pdfData.value = response.data;
       const binaryData = [];
-      binaryData.push(pdfData.value);
-      let blob = new Blob(binaryData, { type: 'application/pdf;chartset=UTF-8' });
-      const url = URL.createObjectURL( 
+      binaryData.push(pdfData.value);   
+      let blob = new Blob(binaryData, { type: 'application/pdf;' });
+      const url = window.URL.createObjectURL( 
           blob
       );
       window.open(url)
     })
+    setTimeout(()=>{
+      loading.close()}, 2000
+    );
   }else if(status.value == 1 && approval.value == 0){
     dialogVisible_approval.value = true;
   }else{
@@ -132,101 +163,112 @@ const reportPage = () => {
 
 //====================================== 点击事件 ===========================================
 const approve = () => {
-  console.log("hitadsf")
   if(approval.value == 1){
     const request = {id: info.value.id, status: 0} ;
     callBack.value = approvalById(request);
     callBack.value.then((response) =>{
       content.value = response.data;
-      console.log(content.value);
       if(content.value.code == 200){
         dialogVisible_alreadyApproved.value = true;
       }
     })
-
-  
-
-    
-    
   }else{
-
     const request = {id: info.value.id, status: 1}
     callBack.value = approvalById(request);
     callBack.value.then((response) =>{
       content.value = response.data;
-      console.log(content.value);
       if(content.value.code == 200){
         dialogVisible_approved.value = true;
       }else if(content.value.resultCode == 60006){
         dialogVisible_finish.value = true;
       }
     })
-
-
-  }
-  
+  }  
 }
 
 const cancelEdit = () => {
-  console.log("cancel bunt  ")
-
   if(flag.value == false){
     flag.value = !flag.value;
     router.go(0);
+  } 
+}
+
+const audit = () => {
+  const data = reactive({id:info.value.id, status:"",}); 
+  if(info.value.status == 1){
+    data.status = 0;
+  }else{
+    data.status = 1;
   }
+  const rslt = finishProject(data);
+  rslt.then( (response) =>{
+    if(response.data.resultCode == 60003){
+      dialogVisible_already.value = true;
+    }else if(response.data.code == 200){
+      dialogVisible_audit.value = true;
+    }else if(response.data.resultCode == 60015){
+      dialogVisible_cannotFinish.value = true;
+    }
+  })
   
 }
 
 const startEdit = () => {
-  
-
-if(info.value.approval == 1){
-  console.log("start edit ", info.value.approval ==1  )
-  dialogVisible_already.value = true;
-}else if(info.value.status == 1){
-  dialogVisible_status.value = true;
-}else{
-  flag.value = !flag.value;
-  callBack.value = getAllMethods();
-  callBack.value.then((response) => {
-    initOption.value = response.data.data;
-  });
-}
-  
+  if(info.value.approval == 1){
+    dialogVisible_already.value = true;
+  }else if(info.value.status == 1){
+    dialogVisible_status.value = true;
+  }else{
+    flag.value = false;
+    isEditing.value = true;
+    callBack.value = getAllMethods();
+    callBack.value.then((response) => {
+      initOption.value = response.data.data;
+    });
+  }
 }
 
 const result = ref();
 const returnPage = () => {
-  router.go(-1);
+  router.push({
+    name: "searchTrust",
+  });
 }
 
 const saveEdit = () => {
-  
-  flag.value = !flag.value;
-  
-
-  console.log("agagagag ",  info.value )
+ 
+  info.value.detectionStartTime = dateFormat(info.value.detectionStartTime);
+  info.value.detectionEndTime = dateFormat(info.value.detectionEndTime);
   result.value = detailUpdate(info.value);
-
   result.value.then((response) => {
-    console.log("resultttt ", response.data);
     if(response.data.code == 200){
-      dialogVisible_editSuccess.value = true;
+      dialogVisible_editSuccess.value = true;   
     }
   })
 }
 
 const handleClick = () => {
-  dialogVisible_editSuccess.value = false;
   dialogVisible_approved.value = false;
   dialogVisible_alreadyApproved.value = false;
+  dialogVisible_audit.value = false;
+  dialogVisible_cannotFinish.value = false;
   router.go(0);
 }
 
-const searchFacility = () => {
+const handleApproval = () => {
+  dialogVisible_editSuccess.value = false;
+  flag.value = true;
+  router.push({
+    name: "approval",
+    query: {
+      id: newEntrustId.id,
+    }
+    
+  })
+}
 
+const searchFacility = () => {
   if(route.query.ticket == null ){
-    console.log("datata in searchhhhhh ", route.query);
     router.push({
       name: "selectShop",  
       query:{
@@ -243,6 +285,51 @@ const searchFacility = () => {
   }
  
 }
+
+//======================================== 文件上传 ================================================
+const uploadFile = (param) => {
+  
+  const fileExt = param.name.substring(param.name.lastIndexOf(".")+1);
+  let types = ["pdf", "doc", "docx"]
+  const isImage = types.includes(fileExt)
+  //if(!isImage){
+  //  ElMessage({
+  //    message: '上传的文件只能是PDF，DOC，DOCX格式',
+  //    type: "error"
+  //  })
+  //  return false;
+  //}
+  return true; 
+  
+};
+
+
+
+const fileee = ref({});
+const uploadInfo = ref({});
+
+const httpRequestLogo = (uploadFile) =>{
+
+  uploadInfo.value["file"] = uploadFile.file;
+  uploadInfo.value["id"] = info.value.id;
+  const rslt = upReport(uploadInfo.value);
+  rslt.then((response) => {
+    if(response.data.code == 200){
+      ElMessage({
+        message: '文件上传成功',
+        type: "success"
+      })
+    }
+  })
+}
+
+
+const handleChange = (file,fileList) => {
+  if(fileList.length > 0){
+    docList.value = [fileList[fileList.length-1]]
+  }
+}
+
 
 //====================================== 时间格式转换 ===========================================
 const dateFormat = (time : Date) => {
@@ -272,20 +359,27 @@ const disabledEndDate = (time: Date) => {
 };
 </script>
 
+<!-- if(!isImage){
+    ElMessage({
+      message: '上传的图片只能是PDF，DOC，DOCX格式',
+      type: "error"
+    })
+    return false;
+  } -->
+
 
 <template>
    <div>
-   <h3 class="header1">委托详情   
+   <h3 class="header1">委托详情  
     <el-button
       type="primary"
       @click="searchFacility()"
       class="searchFacility"
       v-if="!flag"
-    >选择设施</el-button>
-   
+    >选择设施</el-button>   
    </h3>
     <el-descriptions class="margin-top" :column="4" border >
-    
+      
       <el-descriptions-item align="center">
         <template #label>
           <div class="cell-item">委托编号</div>
@@ -326,7 +420,6 @@ const disabledEndDate = (time: Date) => {
           clearable
           placeholder="--请选择--"
           v-if="!flag"
-
         >
           <el-option
             v-for="item in detectionType_option"
@@ -347,6 +440,7 @@ const disabledEndDate = (time: Date) => {
         <el-input
               v-model="entrustmentInfo.client "
               v-if="!flag"
+              style="width:220px"
             />
       </el-descriptions-item>
 
@@ -411,6 +505,7 @@ const disabledEndDate = (time: Date) => {
         <el-input
               v-model="info.designCompany"
               v-if="!flag"
+              style="width:220px"
             />  
       </el-descriptions-item>
 
@@ -418,10 +513,7 @@ const disabledEndDate = (time: Date) => {
         <template #label>
           <div class="cell-item">施工单位</div>
         </template>
-   
-        {{info.constructionUnitName ? info.constructionUnitName : "暂无结果" }}
-  
-
+        {{info.constructionCopmany ? info.constructionCopmany : "暂无结果" }}
       </el-descriptions-item>
 
       <el-descriptions-item align="center">
@@ -434,6 +526,7 @@ const disabledEndDate = (time: Date) => {
         <el-input
               v-model="info.supervisionCompany"
               v-if="!flag"
+              style="width:220px"
             /> 
       </el-descriptions-item>
 
@@ -456,7 +549,7 @@ const disabledEndDate = (time: Date) => {
           <div class="cell-item">检测开始时间</div>
         </template>
         <span v-if="flag">
-          {{dateFormat(info.detectionStartTime).slice(0,10)}}
+          {{info.detectionStartTime ? info.detectionStartTime.slice(0,10) : "暂无结果"}}
         </span>
 
         <el-config-provider :locale="locale" v-if="!flag">
@@ -477,7 +570,7 @@ const disabledEndDate = (time: Date) => {
           <div>检测结束时间</div>
         </template>
         <span v-if="flag">
-          {{dateFormat(info.detectionEndTime).slice(0,10)}}
+          {{info.detectionEndTime ? info.detectionEndTime.slice(0,10) : "暂无结果"}}
         </span>
 
         <el-config-provider :locale="locale" v-if="!flag">
@@ -490,7 +583,34 @@ const disabledEndDate = (time: Date) => {
           >
           </el-date-picker>
         </el-config-provider>
-        
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center" >
+        <template #label>
+          <div >检测面积(㎡)</div>
+        </template>
+        <span v-if="flag">
+          {{info.area ? info.area : "暂无结果" }}
+        </span>
+        <el-input
+              v-model="info.area"
+              v-if="!flag"
+              style="width:220px"
+            />
+      </el-descriptions-item>
+
+      <el-descriptions-item align="center" >
+        <template #label>
+          <div >牌面底标高(m)</div>
+        </template>
+        <span v-if="flag">
+          {{info.height ? info.height : "暂无结果" }}
+        </span>
+        <el-input
+              v-model="info.height"
+              v-if="!flag"
+              style="width:220px"
+            />
       </el-descriptions-item>
 
       <el-descriptions-item align="center">
@@ -509,10 +629,12 @@ const disabledEndDate = (time: Date) => {
 
       <el-descriptions-item align="center" >
         <template #label>
-          <div class="cell-item">修改用户</div>
+          <div >修改用户</div>
         </template>
         {{info.modifier ? info.modifier : "暂无结果"}}
       </el-descriptions-item>
+
+      <el-descriptions-item/>
 
       <el-descriptions-item align="center">
         <template #label>
@@ -529,6 +651,30 @@ const disabledEndDate = (time: Date) => {
       </el-descriptions-item>
 
       <el-descriptions-item/>
+
+      <el-descriptions-item align="center" v-if="uploadReport">
+        <template #label>
+          <div>上传报告</div>
+        </template>
+
+        <el-upload
+          :file-list="docList"
+          class="upload-demo"
+          action="#"
+          :multiple="false"
+          :auto-upload="true"
+          :before-upload="uploadFile"
+          :on-change="handleChange"
+          :httpRequest="httpRequestLogo"
+        >
+          <el-button class="uploadBtn" >选择文件</el-button>
+          
+         
+        </el-upload>
+      
+      </el-descriptions-item>
+
+      <el-descriptions-item v-if="!uploadReport"/>
 
       <el-descriptions-item align="left" span="4">
         <template #label>
@@ -548,6 +694,7 @@ const disabledEndDate = (time: Date) => {
               collapse-tags
               collapse-tags-tooltip
               placeholder="请选择"
+              class="tree"
               v-if="!flag"
             >
               <el-checkbox-group v-model="info.testMethodsId">
@@ -560,6 +707,8 @@ const disabledEndDate = (time: Date) => {
                 </el-option>
               </el-checkbox-group>
             </el-select>
+
+
       </el-descriptions-item>
 
     
@@ -578,14 +727,17 @@ const disabledEndDate = (time: Date) => {
         {{info.detectionResult ? info.detectionResult : "暂无结果"}}
       </el-descriptions-item>
 
+
       
     </el-descriptions>
 
     <el-button class="editBtn" @click="startEdit()" v-if="flag">编辑</el-button>
     <el-button class="saveBtn"  @click="saveEdit()" v-if="!flag">保存</el-button>
-    <el-button class="cancelBtn" @click="cancelEdit()">取消</el-button>
-    <el-button class="approveBtn"  @click="approve()">批准</el-button>
-    <el-button class="reportBtn" @click="reportPage()" >报告</el-button>
+    <!-- 
+    <el-button class="auditBtn" @click="audit()" v-if="flag">审核 / 取消审核</el-button>
+    <el-button class="approveBtn"  @click="approve()">批准</el-button> -->
+    <el-button class="reportBtn" @click="reportPage()" v-if="flag">报告</el-button>
+    <el-button class="cancelBtn" @click="cancelEdit()" v-if="!flag">取消</el-button>
     <el-button class="returnBtn" @click="returnPage()" >返回</el-button>
 
     <!-- 委托未批准弹窗 -->
@@ -660,14 +812,40 @@ const disabledEndDate = (time: Date) => {
     <span>委托修改信息已被保存！</span>
     <template #footer>
       <span class="dialog-footer">
+        <el-button type="primary" @click="handleApproval()"
+          >确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  <!-- 委托审核状态修改成功-->
+  <el-dialog v-model="dialogVisible_audit" title="修改成功" width="30%">
+    <span>委托审核状态修改成功！</span>
+    <template #footer>
+      <span class="dialog-footer">
         <el-button type="primary" @click="handleClick()"
           >确认</el-button>
       </span>
     </template>
   </el-dialog>
 
-  </div>
+  <!-- 无法审核弹窗 -->
+    <el-dialog
+      v-model="dialogVisible_cannotFinish"
+      title="无法审核"
+      width="30%"
+    >
+      <span>委托详情未提交检测结果，不能进行审核！</span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="handleClick()"
+            >确定</el-button
+          >
+        </span>
+      </template>
+    </el-dialog>  
 
+  </div>
   
 </template>
 
@@ -679,16 +857,22 @@ const disabledEndDate = (time: Date) => {
 .editBtn {
   margin-top: 80px;
   position: relative;
-  left: 24%;
+  left: 30%;
 }
 
 .saveBtn {
   margin-top: 80px;
   position: relative;
-  left: 24%;
+  left: 32%;
 }
 
 .cancelBtn {
+  margin-top: 80px;
+  position: relative;
+  left: 42%;
+}
+
+.auditBtn {
   margin-top: 80px;
   position: relative;
   left: 32%;
@@ -703,13 +887,13 @@ const disabledEndDate = (time: Date) => {
 .reportBtn {
   margin-top: 80px;
   position: relative;
-  left: 48%;
+  left: 42%;
 }
 
 .returnBtn {
   margin-top: 80px;
   position: relative;
-  left: 56%;
+  left: 54%;
 }
 
 .cell-item{
@@ -720,7 +904,7 @@ const disabledEndDate = (time: Date) => {
 
 .header1 {
   display: flex;
-  margin-left: 740px;
+  margin-left: 720px;
   margin-bottom: 48px;
   align-items: center;
   font-size: 24px;
@@ -731,64 +915,19 @@ const disabledEndDate = (time: Date) => {
   margin-left: 640px;
   margin-top: 5px;
 }
+
+.uploadBtn{
+  display:flex;
+}
+
+.upload-demo{
+  display:flex;
+  mragin-right: 16px;
+  width: 200px;
+}
+
+.tree{
+ // height: 280px;
+ width: 2.7rem;
+}
 </style>
-
-<!--   
-
-
-
-
-=============================================================================================
-
-<el-descriptions-item align="left" span="4">
-        <template #label>
-          <div class="cell-item" align="center">检测项目</div>
-        </template>
-        <span v-if="info.testItemsVos == null" 
-        style="text-align: center;display:block;"
-        > 暂无结果 </span>
-        <span v-else :keys="item" v-for="item in info.testItemsVos" >
-        {{item.name}};
-        </span>
-    
-      </el-descriptions-item>
-  
-  
- ====================================================================================
-
-
-
-import type { FormInstance, FormRules } from "element-plus";
-
-const formSize = ref("default");
-const ruleFormRef = ref<FormInstance>();
-
-
-
-const tableData = [
-  {
-    entrustmentNo: "7987465423",
-    reportNo: "12345678",
-    inspectResult: "1、（A级）可继续使用，并应按规范要求做好维护保养。 2、（B级）某某分项存在一般缺陷，应按规范要求15天内完成整改，并申请复检" +
-    "。 3、（C级）某某分项存在严重缺陷，应按规范要求7天内完成整改，并申请复检。某某存在坠落、倾覆危险，应按规范要求24小时内予以拆除。）"
-
-  },
-];
-
-const submitForm = async (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      console.log("submit!");
-    } else {
-      console.log("error submit!", fields);
-    }
-  });
-};
-
-const resetForm = (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
-  formEl.dateValue = "";
-};         
-  </div> -->

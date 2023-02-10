@@ -49,14 +49,7 @@ const refreshCode = async (params) => {
   });
 };
 
-const getData = () => {
-  const request = identifyingCode();
-  request.then((response) => {
-    arr.value = response.data.data.image;
-    codeKey.value = response.data.data.codeKey;
-    console.log("infunctionnnnnnn ", codeKey.value);
-  });
-};
+
 
 </script>
 
@@ -73,6 +66,15 @@ const getData = () => {
   margin-left: 22px;
 }
 </style>
+
+<!-- const getData = () => {
+  const request = identifyingCode();
+  request.then((response) => {
+    arr.value = response.data.data.image;
+    codeKey.value = response.data.data.codeKey;
+    console.log("infunctionnnnnnn ", codeKey.value);
+  });
+}; -->
 
 <!-- let canvas = document.getElementById("mycanvas");//创建canvas
 let context = canvas.getContext("2d"); //创建画布 img.setAttribute("crossOrigin", "anonymous"); //解决图片跨域问题,也要放到赋值前，否ze大部分浏览器会报错

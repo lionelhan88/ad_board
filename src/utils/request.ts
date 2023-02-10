@@ -1,3 +1,4 @@
+import { ElConfigProvider } from 'element-plus';
 import axios from "axios";
 import router from "../router";
 import store from '../store/index'
@@ -6,10 +7,9 @@ import store from '../store/index'
 const service = axios.create({
     // baseURL: 'http://project.signboard.jzdianzi.cn/',
     baseURL: import.meta.env.VITE_PROXY_DOMAIN_REAL,
-
     //testLink:  http://project.signboard.site.jzdianzi.cn/
     //  baseURL: 'http://192.168.0.202:9000/',
-    timeout: 5000
+    timeout: 10000
 })
 
 
@@ -37,12 +37,30 @@ service.interceptors.request.use(function (config) {
 // 添加响应拦截器
 service.interceptors.response.use(function (response) {
 
-  // console.log("sohe hin n hd =========>>>>>>>>>>> ", response.data);
+    // console.log("sohe hin n hd =========>>>>>>>>>>> ", response.data);
     // 对响应数据做点什么
     return response;
   },  function (error) {
     // 对响应错误做点什么
     
+    // console.log("errorororororoororororororo----- ", error.config);
+    if(error.config){
+      console.log("Yessss", error.response.status);
+      if(error.response.status == 401){
+        window.location.href='/';
+      }
+      //
+      // router.replace({
+      //   path:'/',
+      //   query: {
+      //     redirect: router.currentRoute.value.fullPath 
+      //   },
+        
+      // })
+      
+    }else{
+      console.log("Nonononononon")
+    }
     // if(error.code == "ERR_NETWORK"){
     //   console.log("sohe hin n hd =========>>>>>>>>>>> errrr213  ", error);
     //   router.replace({path:'/login'});

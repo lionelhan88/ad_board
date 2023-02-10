@@ -15,6 +15,7 @@ const dialogVisible_photo = ref(false);
 const dialogVisible_photoDelete = ref(false);
 const dialogVisible_cannotPreview = ref(false);
 const dialogVisiblePic = ref(false);
+const dialogVisible_already = ref(false);
 const dialogImageUrl = ref('');
 
 const op = ["不符合", "符合"]
@@ -46,13 +47,14 @@ onMounted(() => {
   console.log("fileelele ", fileList.value)
   const callBack = getDetectionDetail(router.currentRoute.value.query);
   callBack.then((response) => {
-    console.log("something in onMounted", response.data.data[0].pics.length);
+    console.log("something in onMounted", response.data.data[0]);
     content.value = response.data.data[0];
     uploadPhotoDetail.testItemsId = content.value.testItemsId;
     uploadPhotoDetail.entrustmentDetailId = content.value.entrustmentDetailId;
     getURLdata.entrustmentDetailId = content.value.entrustmentDetailId;
     getURLdata.testItemsId = content.value.testItemsId;
     fileSize.value = content.value.pics.length;
+    
   });  
 });
 
@@ -74,45 +76,72 @@ const uploadFile = (param) => {
   console.log("filelelelele ", param);
   let types = ['image/jpeg', 'image/jpg', 'image/png'];
   const isImage = types.includes(param.type)
+  let size = param.size / 1024 / 1024;
+  let name = "";
+  if(param.type == "image/jpeg"){
+    name = param.name.substring(0,(param.name.length-5)) + param.uid +
+      param.name.substring((param.name.length-5))
+  }else{
+    name = param.name.substring(0,(param.name.length-4)) + param.uid +
+      param.name.substring((param.name.length-4))
+  }
+  console.log("sizeeeee ", name);
   if(!isImage){
     ElMessage({
       message: '上传的图片只能是JPG，JPEG，PNG格式',
-      type: "warning"
+      type: "error"
     })
-    return;
+    return false;
+  }else if(size > 0.5){
+    ElMessage({
+      message: '上传的图片大小不能超过 500 kb',
+      type: "error"
+    })
+    return false;
   }else{
     return new Promise((resolve, reject) => {
-    const getURL = getUploadPathUrl(getURLdata);
-    getURL.then((response) => {
-      console.log("get111");
-      uploadData.policy = response.data.data.policy;
-      uploadData.signature = response.data.data.signature;
-      uploadData.key = response.data.data.path + "/" + param.name;
-      uploadData.OSSAccessKeyId = response.data.data.accessKey;
-      uploadData.url = response.data.data.url;
-      fileList.value.push(param.name)
-      resolve(true);
-      console.log("上传之前文件信息；", uploadData);
+
+      const getURL = getUploadPathUrl(getURLdata);
+      getURL.then((response) => {
+
+        if(response.data.resultCode == 60003){
+          dialogVisible_already.value = true;
+        }else{
+          console.log("get111");
+          uploadData.policy = response.data.data.policy;
+          uploadData.signature = response.data.data.signature;
+          uploadData.key = response.data.data.path + "/" + name;
+          uploadData.OSSAccessKeyId = response.data.data.accessKey;
+          uploadData.url = response.data.data.url;
+          fileList.value.push(name)
+          resolve(true);
+          console.log("上传之前文件信息；", uploadData);
+        }
+      });
     });
-  });
-  }
+  } 
+  
 };
 
 const saveDetail = () => {
   content.value.children.forEach(element => {
     console.log("1212312", element);
-    const data = {isFit: element.isFit, 
-                  detectionResult: element.detectionResult, 
+    const data = {isFit: element.isFit>=0 ? element.isFit : element.detectionDetails.isFit , 
+                  detectionResult: element.detectionResult ? element.detectionResult : element.detectionDetails.detectionResult, 
                   entrustmentDetailId: element.entrustmentDetailId,
                   testItemsId: element.testItemsId,}
     saveResult.push(data);
   })
 
+   console.log("saveRt ", saveResult)
   const response = saveDetectionDetails(saveResult);
 
   response.then((r) => {
+    console.log("dasfasfdasdf " , r.data)
     if(r.data.code == 200){
       dialogVisible_success.value = true;
+    }else if(r.data.resultCode == 60003){
+      dialogVisible_already.value = true;
     }
   })
 };
@@ -121,6 +150,7 @@ const handleClick = () => {
   dialogVisible_success.value = false;
   dialogVisible_photo.value = false;
   dialogVisible_photoDelete.value = false;
+  dialogVisible_already.value = false;
   router.go(0);
 }
 
@@ -131,6 +161,11 @@ const editDetail = () => {
 
 const cancelBtn = () => {
     flag.value = true;
+    router.go(0);
+}
+
+const handleChange = (value, scope) => {
+  console.log("handleChanged ", scope.row)
 }
 
 const uploadPhotoDetail = reactive({
@@ -164,6 +199,8 @@ const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
     console.log("resultttt ", r)
     if(r.data.code == 200){
       dialogVisible_photoDelete.value = true;
+    }else if(r.data.resultCode == 60003){
+      dialogVisible_already.value = true;
     }
   })
 }
@@ -201,12 +238,11 @@ const onLoadImg = (e) => {
 }
 </script>
 
-
+<!-- -->
 
 <template>
   <div>
     <h2>检测详情</h2>
-
     <h3 class="titleSize">{{ content.testItemsName }}:</h3>
     <el-divider />
 
@@ -238,9 +274,15 @@ const onLoadImg = (e) => {
         v-if="!flag"
         align="center"
       >
-        <template #default="scope">
-          <el-input v-model="scope.row.detectionResult"> </el-input>
+     
+        <template #default="scope">      
+           <el-input v-model="scope.row.detectionDetails.detectionResult"
+            v-if="scope.row.detectionDetails != null"
+            clearable />  
+          <el-input v-model="scope.row.detectionResult" v-else placeholder="请输入检测结果"/>
         </template>
+
+        
       </el-table-column>
 
       <el-table-column
@@ -265,7 +307,7 @@ const onLoadImg = (e) => {
         v-if="!flag"
       >
         <template #default="scope">
-          <el-select v-model="scope.row.isFit" placeholder="--请选择--">
+          <el-select v-if="scope.row.detectionDetails != null" v-model="scope.row.detectionDetails.isFit" >
             <el-option
               v-for="item in options"
               :key="item.value"
@@ -273,10 +315,20 @@ const onLoadImg = (e) => {
               :value="item.value"
             />
           </el-select>
+
+          <el-select v-else v-model="scope.row.isFit" placeholder="--请选择--">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+          <span>{{}}</span>
         </template>
+        
       </el-table-column>
     </el-table>
-
 
     <div class="titleSize2">
       现场图片:
@@ -301,10 +353,6 @@ const onLoadImg = (e) => {
       <div class="el-upload__text">拖拽文件至此 或 <em>点击上传</em></div>
     </el-upload>
 
-    
-
-
-
     <el-button  @click="editDetail()" class="editBtn" v-if="flag">
       编辑
     </el-button>
@@ -313,12 +361,12 @@ const onLoadImg = (e) => {
       取消
     </el-button>
 
-    <el-button v-if="flag" class="saveBtn"> 保存 </el-button>
-    <el-button v-else @click="saveDetail()" class="saveBtn"> 保存 </el-button>
+    <el-button v-if="!flag" @click="saveDetail()" class="goBackBtn"> 保存 </el-button>
 
-    <el-button type="info" @click="goBackPage()" class="goBackBtn">
+    <el-button v-if="flag" type="info" @click="goBackPage()" class="goBackBtn">
       返回
     </el-button>
+
   </div>
 
   <!-- 上传照片预览  -->
@@ -365,6 +413,18 @@ const onLoadImg = (e) => {
       </span>
       </template>
   </el-dialog>
+
+  <!-- 委托已审核,无法编辑弹窗-->
+  <el-dialog v-model="dialogVisible_already" title="无法编辑" width="30%">
+    <span>该委托已完成审核，无法进行编辑操作！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="handleClick()"
+          >确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
 </template>
 
 
@@ -386,21 +446,17 @@ const onLoadImg = (e) => {
 
 .dragBox {
   margin-top: 24px;
+  width: 400px;
 }
 
 .editBtn {
   margin-top: 80px;
-  margin-left: 24%;
+  margin-left: 39%;
 }
 
 .goBackBtn {
   margin-top: 80px;
-  margin-left: 320px;
-}
-
-.saveBtn {
-  margin-top: 80px;
-  margin-left: 320px;
+  margin-left: 300px;
 }
 
 .dataTable {

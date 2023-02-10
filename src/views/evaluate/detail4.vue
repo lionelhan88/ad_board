@@ -19,6 +19,7 @@ const dialogVisible_photo = ref(false);
 const dialogVisible_photoDelete = ref(false);
 const dialogVisible_cannotPreview = ref(false);
 const dialogVisiblePic = ref(false);
+const dialogVisible_already = ref(false);
 const dialogImageUrl = ref('');
 
 // 预览detail4 & detail1
@@ -61,7 +62,6 @@ const uploadPhotoDetail = reactive({
 onMounted(() =>{
     const callBack = getDetectionDetail(route.query);
     callBack.then(response =>{
-        console.log("Responslv ", response.data.data[0])
         content.value = response.data.data[0]
         uploadPhotoDetail.entrustmentDetailId = content.value.entrustmentDetailId;
         uploadPhotoDetail.testItemsId = content.value.testItemsId;
@@ -76,11 +76,11 @@ onMounted(() =>{
 //======================================== 按钮操作 ================================================
 const editDetail = () => {
   flag.value = false;
-  console.log("hjhiahfaihf ", flag.value);
 };
 
 const cancelBtn = () => {
     flag.value = true;
+    router.go(0);
 }
 
 const goBackPage = () => {
@@ -90,8 +90,6 @@ const goBackPage = () => {
 const saveDetail = () => {
 
     content.value.children.forEach( element => {
-        console.log("总体结构 ", element)
-
         const data = {isFit: element.isFit>=0 ? element.isFit : element.detectionDetails.isFit , 
                calculationResult: element.calculationResult ? element.calculationResult: element.detectionDetails.calculationResult, 
                unit: element.unit ? element.unit : element.detectionDetails.unit,
@@ -100,12 +98,12 @@ const saveDetail = () => {
         saveResult.push(data);
         
     })
-
-    console.log("resultttt ", saveResult.value);
     const response = saveDetectionDetails(saveResult);
     response.then((r) => {
         if(r.data.code == 200){
             dialogVisible_success.value = true;
+        }else if(r.data.resultCode == 60003){
+            dialogVisible_already.value = true;
         }
     }) 
     
@@ -115,48 +113,57 @@ const handleClick = () => {
     dialogVisible_success.value = false;
     dialogVisible_photo.value = false;
     dialogVisible_photoDelete.value = false;
+    dialogVisible_already.value = false;
     router.go(0);
 }
 
 
 //======================================== 图片上传 ================================================
 const uploadFile = (param) => {
-  console.log("filelelelele ", param);
-  let types = ['image/jpeg', 'image/jpg', 'image/png'];
-  const isImage = types.includes(param.type)
-  if(!isImage){
-    ElMessage({
-      message: '上传的图片只能是JPG，JPEG，PNG格式',
-      type: "warning"
-    })
-    return;
-  }else{
-    return new Promise((resolve, reject) => {
-    const getURL = getUploadPathUrl(getURLdata);
-    getURL.then((response) => {
-      console.log("get111");
-      uploadData.policy = response.data.data.policy;
-      uploadData.signature = response.data.data.signature;
-      uploadData.key = response.data.data.path + "/" + param.name;
-      uploadData.OSSAccessKeyId = response.data.data.accessKey;
-      uploadData.url = response.data.data.url;
-      fileList.value.push(param.name)
-      resolve(true);
-      console.log("上传之前文件信息；", uploadData);
-    });
-  });
-  }
+    let types = ['image/jpeg', 'image/jpg', 'image/png'];
+    let size = param.size / 1024 / 1024;
+    const isImage = types.includes(param.type)
+    let name = "";
+    if(param.type == "image/jpeg"){
+        name = param.name.substring(0,(param.name.length-5)) + param.uid +
+        param.name.substring((param.name.length-5))
+    }else{
+        name = param.name.substring(0,(param.name.length-4)) + param.uid +
+        param.name.substring((param.name.length-4))
+    }
+    if(!isImage){
+        ElMessage({
+        message: '上传的图片只能是JPG，JPEG，PNG格式',
+        type: "warning"
+        })
+        return false;
+    }else if(size > 0.5){
+        ElMessage({
+            message: '上传的图片大小不能超过 500 kb',
+            type: "error"
+        })
+        return false;
+    }else{
+        return new Promise((resolve, reject) => {
+            const getURL = getUploadPathUrl(getURLdata);
+            getURL.then((response) => {
+                uploadData.policy = response.data.data.policy;
+                uploadData.signature = response.data.data.signature;
+                uploadData.key = response.data.data.path + "/" + name;
+                uploadData.OSSAccessKeyId = response.data.data.accessKey;
+                uploadData.url = response.data.data.url;
+                fileList.value.push(name)
+                resolve(true);
+            });
+        });
+    }
 };
-
 
 const uploadPhoto = () => {  
     uploadPhotoDetail.names = fileList.value;
-    console.log("fdadfafsdasdfdasf " , uploadPhotoDetail)
-
     if(uploadPhotoDetail.names.length > 0){
       const data = saveFileFullPath(uploadPhotoDetail);
       data.then((r) =>{
-        console.log(r.data);
         if(r.data.code == 200){
           dialogVisible_photo.value = true;
         }
@@ -168,10 +175,8 @@ const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
   
     let file = reactive({id:""});
     file.id = uploadFile.id;
-    console.log("on-removeeeeee ", uploadFile, file)
     let data = delFile(file);
     data.then( (r) => {
-        console.log("resultttt ", r)
         if(r.data.code == 200){
            dialogVisible_photoDelete.value = true;
         }
@@ -184,12 +189,10 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
     p.path.push(uploadFile.path) ;
 
     if(p.path[0] == null){
-        console.log("dfasdfasdfasdf ")
         dialogVisible_cannotPreview.value = true;
     }else{
         let data = getAccessUrl(p);
         data.then((r) => {
-            console.log("RRRRR", r.data.data[0].url)
             dialogImageUrl.value = r.data.data[0].url
             dialogVisiblePic.value = true
         })
@@ -201,7 +204,6 @@ const onLoadImg = (e) => {
   if (img.fileSize > 0 || (img.width > 1 && img.height > 1)) {
     imgwidth.value = img.width + 32
     boxWidth.value = img.width
-    console.log("onlogadddd ", imgwidth.value)
   }
 }
 
@@ -243,7 +245,11 @@ const onLoadImg = (e) => {
                 align="center"
             >
                 <template #default="scope">
-                <el-input v-model="scope.row.calculationResult"> </el-input>
+                    <el-input v-model="scope.row.detectionDetails.calculationResult"
+                        v-if="scope.row.detectionDetails != null"
+                        clearable />  
+                    <el-input v-model="scope.row.calculationResult" v-else placeholder="请输入计算结果"/>
+                
                 </template>
             </el-table-column>
 
@@ -269,7 +275,11 @@ const onLoadImg = (e) => {
                 align="center"
             >
                 <template #default="scope">
-                <el-input v-model="scope.row.unit"> </el-input>
+                    
+                    <el-input v-model="scope.row.detectionDetails.unit"
+                        v-if="scope.row.detectionDetails != null"
+                        clearable />  
+                    <el-input v-model="scope.row.unit" v-else placeholder="请输入单位"/>
                 </template>
             </el-table-column>
 
@@ -295,7 +305,10 @@ const onLoadImg = (e) => {
                 align="center"
             >
                 <template #default="scope">
-                <el-input v-model="scope.row.specificationLimit"> </el-input>
+                    <el-input v-model="scope.row.detectionDetails.specificationLimit"
+                        v-if="scope.row.detectionDetails != null"
+                        clearable />  
+                    <el-input v-model="scope.row.specificationLimit" v-else placeholder="请输入规范限值"/>
                 </template>
             </el-table-column>
 
@@ -321,22 +334,31 @@ const onLoadImg = (e) => {
                 v-if="!flag"
             >
                 <template #default="scope">
-                <el-select v-model="scope.row.isFit" placeholder="--请选择--">
-                    <el-option
-                    v-for="item in options"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                    />
-                </el-select>
+                    <el-select v-if="scope.row.detectionDetails != null" v-model="scope.row.detectionDetails.isFit" placeholder="--请选择--">
+                            <el-option
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                            />
+                        </el-select>
+
+                        <el-select v-else v-model="scope.row.isFit" placeholder="--请选择--">
+                            <el-option
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                            />
+                        </el-select>
                 </template>
             </el-table-column>
         </el-table>
 
         <div class="titleSize2">
-            现场图片:
-            <el-button type="primary" @click="isUpload = true" class="addPhoto" v-if="!isUpload && fileSize ==0 ">上传现场照片</el-button>
-            <el-button type="primary" @click="uploadPhoto()" v-if="isUpload || fileSize>0" class="addPhoto">保存现场照片</el-button>
+            计算模型照片:
+            <el-button type="primary" @click="isUpload = true" class="addPhoto" v-if="!isUpload && fileSize ==0 ">选择需要上传的照片</el-button>
+            <el-button type="primary" @click="uploadPhoto()" v-if="isUpload || fileSize>0" class="addPhoto">保存上传的照片</el-button>
         </div>
 
         <el-upload
@@ -366,10 +388,9 @@ const onLoadImg = (e) => {
         取消
         </el-button>
 
-        <el-button v-if="flag" class="saveBtn"> 保存 </el-button>
-        <el-button v-else @click="saveDetail()" class="saveBtn"> 保存 </el-button>
+        <el-button v-if="!flag" @click="saveDetail()" class="goBackBtn"> 保存 </el-button>
 
-        <el-button type="info" @click="goBackPage()" class="goBackBtn">
+        <el-button v-if="flag" type="info" @click="goBackPage()" class="goBackBtn">
         返回
         </el-button>
 
@@ -390,8 +411,8 @@ const onLoadImg = (e) => {
         </el-dialog>
 
         <!-- 现场照片保存成功-->
-        <el-dialog v-model="dialogVisible_photo" title="保存成功" width="30%">
-            <span>现场照片保存成功！</span>
+        <el-dialog v-model="dialogVisible_photo" title="上传成功" width="30%">
+            <span>照片上传成功！</span>
             <template #footer>
             <span class="dialog-footer">
                 <el-button type="primary" @click="handleClick()">确认</el-button>
@@ -401,7 +422,7 @@ const onLoadImg = (e) => {
 
          <!-- 现场照片删除成功-->
         <el-dialog v-model="dialogVisible_photoDelete" title="删除成功" width="30%">
-            <span>现场照片成功删除！</span>
+            <span>照片成功删除！</span>
             <template #footer>
             <span class="dialog-footer">
                 <el-button type="primary" @click="handleClick()">确认</el-button>
@@ -411,10 +432,21 @@ const onLoadImg = (e) => {
 
         <!-- 无法预览照片 -->
         <el-dialog v-model="dialogVisible_cannotPreview" title="无法预览" width="30%">
-            <span>预览前请先保存现场照片！</span>
+            <span>预览前请先保存照片！</span>
             <template #footer>
             <span class="dialog-footer">
                 <el-button type="primary" @click="dialogVisible_cannotPreview=false">确认</el-button>
+            </span>
+            </template>
+        </el-dialog>
+
+        <!-- 委托已批准,无法编辑弹窗-->
+        <el-dialog v-model="dialogVisible_already" title="无法编辑" width="30%">
+            <span>该委托已被批准，无法进行编辑操作！</span>
+            <template #footer>
+            <span class="dialog-footer">
+                <el-button type="primary" @click="handleClick()"
+                >确认</el-button>
             </span>
             </template>
         </el-dialog>
@@ -432,18 +464,14 @@ const onLoadImg = (e) => {
 
 .editBtn {
   margin-top: 80px;
-  margin-left: 24%;
+  margin-left: 39%;
 }
 
 .goBackBtn {
   margin-top: 80px;
-  margin-left: 320px;
+  margin-left: 300px;
 }
 
-.saveBtn {
-  margin-top: 80px;
-  margin-left: 320px;
-}
 
 .titleSize2 {
   font-size: 18px;
@@ -456,6 +484,7 @@ const onLoadImg = (e) => {
 
 .dragBox {
   margin-top: 24px;
+  width: 400px;
 }
 
 </style>

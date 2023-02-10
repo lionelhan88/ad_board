@@ -11,12 +11,11 @@
     >
       <el-row>
         <el-col :span="18">
-          <el-form-item label="委托编号 :">
+          <el-form-item label="委托编号 :" style="width: 3.88rem">
             <el-input
               v-model="entrustNum"
               placeholder="完成表单后，系统自动生成"
               disabled
-              style="width: 625px"
             />
           </el-form-item>
         </el-col>
@@ -25,7 +24,7 @@
           <el-button
             type="primary"
             @click="searchFacility()"
-            style="margin-left: 250px"
+            style="margin-left: 1.25rem"
             >选择设施</el-button
           >
         </el-col>
@@ -33,20 +32,18 @@
 
       <el-row>
         <el-col :span="12">
-          <el-form-item label="设施编号:" prop="facilityId">
+          <el-form-item label="设施编号:" prop="facilityId" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.facilityId"
-              style="width: 625px"
               disabled
             />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="设施名称:" prop="facilityName">
+          <el-form-item label="设施名称:" prop="facilityName" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.facilityName"
-              style="width: 625px"
               disabled
             />
           </el-form-item>
@@ -55,20 +52,18 @@
 
       <el-row>
         <el-col :span="12">
-          <el-form-item label="行政区域:" prop="areaName">
+          <el-form-item label="行政区域:" prop="areaName" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.areaName"
-              style="width: 625px"
               disabled
             />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="店铺名称:" prop="shopName">
+          <el-form-item label="店铺名称:" prop="shopName" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.shopName"
-              style="width: 625px"
               disabled
             />
           </el-form-item>
@@ -77,21 +72,19 @@
 
       <el-row>
         <el-col :span="12">
-          <el-form-item label="设施地点:" prop="detailedAddress">
+          <el-form-item label="设施地点:" prop="detailedAddress" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.detailedAddress"
-              style="width: 625px"
               disabled
             />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="施工单位 :" prop="constructionCopmany">
+          <el-form-item label="施工单位 :" prop="constructionCopmany" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.constructionCopmany"
               disabled
-              style="width: 625px"
             />
           </el-form-item>
         </el-col>
@@ -102,8 +95,9 @@
           <el-form-item
             label="委托日期 :"
             prop="entrustmentInfoVo.entrustmentDate"
+            style="width: 3.88rem"
           >
-            <el-config-provider :locale="locale">
+            <el-config-provider :locale="locale" >
               <el-date-picker
                 v-model="ruleForm.entrustmentInfoVo.entrustmentDate"
                 type="date"
@@ -118,7 +112,7 @@
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="检测日期 :" style="width: 750px" prop="dateValue">
+          <el-form-item label="检测日期 :" style="width: 3.88rem" prop="dateValue">
             <el-date-picker
               v-model="ruleForm.dateValue"
               type="daterange"
@@ -137,6 +131,7 @@
           <el-form-item
             label="检测类型 :"
             prop="entrustmentInfoVo.detectionType"
+            style="width: 3.88rem"
           >
             <el-select
               v-model="ruleForm.entrustmentInfoVo.detectionType"
@@ -155,7 +150,7 @@
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="设施类型 :" prop="facilityType">
+          <el-form-item label="设施类型 :" prop="facilityType" style="width: 3.88rem">
             <el-select
               v-model="ruleForm.facilityType"
               clearable="true"
@@ -175,22 +170,20 @@
 
       <el-row>
         <el-col :span="12">
-          <el-form-item label="检测面积(㎡) :" prop="area">
+          <el-form-item label="检测面积(㎡) :" prop="area" style="width: 3.88rem">
             <el-input
               v-model.number="ruleForm.area"
               placeholder="请输入检测面积"
-              style="width: 625px"
               @input="valueChange(ruleForm.area)" 
             />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="牌面底标高(m):" prop="height">
+          <el-form-item label="牌面底标高(m):" prop="height" style="width: 3.88rem">
             <el-input
               v-model.number="ruleForm.height"
               placeholder="请输入牌面高度"
-              style="width: 625px"
               @input="valueChange(ruleForm.height)"
             />
           </el-form-item>
@@ -199,21 +192,19 @@
 
       <el-row>
         <el-col :span="12">
-          <el-form-item label="委托单位 :" prop="entrustmentInfoVo.client">
+          <el-form-item label="委托单位 :" prop="entrustmentInfoVo.client" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.entrustmentInfoVo.client"
               placeholder="请输入委托单位名称"
-              style="width: 625px"
             />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="监理单位 :" prop="supervisionCompany">
+          <el-form-item label="监理单位 :" prop="supervisionCompany" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.supervisionCompany"
               placeholder="请输入监理单位名称"
-              style="width: 625px"
             />
           </el-form-item>
         </el-col>
@@ -221,11 +212,10 @@
 
       <el-row>
         <el-col :span="12">
-          <el-form-item label="设计单位 :" prop="designCompany">
+          <el-form-item label="设计单位 :" prop="designCompany" style="width: 3.88rem">
             <el-input
               v-model="ruleForm.designCompany"
               placeholder="请输入设计单位名称"
-              style="width: 625px"
             />
           </el-form-item>
         </el-col>
@@ -233,7 +223,7 @@
 
       <el-row>
         <el-col :span="24">
-          <el-form-item label="检测方法 :" prop="testMethodsId">
+          <el-form-item label="检测方法 :" prop="testMethodsId" >
             <el-tree
               ref="treeRef"
               :data="initOption"
@@ -279,6 +269,17 @@
       </span>
     </template>
   </el-dialog>
+
+  <!-- 检测方法不能为空弹窗-->
+  <el-dialog v-model="dialogVisible_testMethodId" title="无法创建" width="30%">
+    <span>无法创建委托，检测方法不能为空</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="dialogVisible_testMethodId=false"
+          >确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -300,6 +301,7 @@ const route = useRoute();
 const formSize = ref("default");
 const ruleFormRef = ref<FormInstance>();
 const dialogVisible = ref(false);
+const dialogVisible_testMethodId = ref(false);
 const detectionType = ref();
 const facilityType = ref("");
 const testMethodsId = ref([]);
@@ -349,6 +351,9 @@ const ruleForm = reactive({
     entrustmentNo: "",
     entrustmentDate: "",
   },
+  facilityStructureType: "",
+  facilityPosition: "",
+  facilityPics: "",
 });
 
 const initOption = ref([]);
@@ -366,6 +371,9 @@ onMounted(() => {
     ruleForm.constructionCopmany = route.query.constructionUnitName;
     ruleForm.facilityName = route.query.signName;
     ruleForm.shopName = route.query.name;
+    ruleForm.facilityStructureType = route.query.facilityStructureType;
+    ruleForm.facilityPosition = route.query.facilityPosition;
+    ruleForm.facilityPics = route.query.facilityPics;
   }
   callBack.value = getAllMethods();
   callBack.value.then((response) => {
@@ -376,8 +384,6 @@ onMounted(() => {
       defaultTree.push(element.id);
     })
   });
-
-
 });
 
 //======================================== 网络请求 ================================================
@@ -394,21 +400,16 @@ const searchFacility = () => {
 };
 
 const getCheckedNodes = () => {
-  const asd = treeRef.value!.getCheckedNodes(false, false);
-  console.log(asd);
-  const a = [];
-  asd.forEach((element) => {
-    console.log("afdfs ", element.id);
-    a.push(element.id);
+  const nodes = treeRef.value!.getCheckedNodes(false, false);
+  const aList = [];
+  nodes.forEach((element) => {
+    aList.push(element.id);
   });
-  console.log("aaaaaaa ", a);
 };
 
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
-    console.log("validddd ", valid);
-    console.log("fieldssss ", fields);
     if (valid) {
       const methods = treeRef.value!.getCheckedNodes(false, false);
       methods.forEach((element) => {
@@ -421,20 +422,21 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         ruleForm.detectionEndTime = dateFormat(ruleForm.dateValue[1]);
       }
 
-      ruleForm.entrustmentInfoVo.entrustmentDate = dateFormat(ruleForm.entrustmentInfoVo.entrustmentDate);
-
+      ruleForm.entrustmentInfoVo.entrustmentDate = 
+        dateFormat(ruleForm.entrustmentInfoVo.entrustmentDate);
+      if(ruleForm.testMethodsId.length == 0){
+        dialogVisible_testMethodId.value = true;
+      }else{
+        const data = createEntrust(ruleForm); 
       
-      const data = createEntrust(ruleForm); 
-      
-      data.then((response) => {
-        console.log("responsess ", response.data)
-        if(response.data.code == 200){
-          entrustNum.value = response.data.data.entrustmentInfoVo.entrustmentNo;
-          dialogVisible.value = true;
-          ruleForm.entrustmentInfoVo.entrustmentNo = response.data.data.entrustmentInfoVo.entrustmentNo;
-        }
-      })
-      
+        data.then((response) => {
+          if(response.data.code == 200){
+            entrustNum.value = response.data.data.entrustmentInfoVo.entrustmentNo;
+            dialogVisible.value = true;
+            ruleForm.entrustmentInfoVo.entrustmentNo = response.data.data.entrustmentInfoVo.entrustmentNo;
+          }
+        })
+      }
     } else {
       console.log("error submit!", fields);
     }
@@ -469,7 +471,6 @@ const handleConfirm = (formEl: FormInstance | undefined) => {
 
 const chooseAll = () => {
   flag.value = false;
-  console.log("Choose allll ", initOption.value )
   treeRef.value!.setCheckedNodes(initOption.value as Node[], true)
 }
 
@@ -650,12 +651,12 @@ const eqp_options = [
 .tree {
   overflow-y: scroll;
   overflow-x: hidden;
-  width: 1000px;
+  width: 1rem;
   height: 280px;
 }
 
 .el-tree {
-  min-width: 100%;
+  min-width: 95%;
   display: inline-block !important;
 }
 
@@ -687,359 +688,3 @@ const eqp_options = [
 }
 </style>
 
-<!-- 
-
-  
-
-
-  
-
-  //===================================================================================================
-
-<el-col :span="24">
-          <el-form-item label="检测方法 :" prop="testMethodsId">
-            <el-select
-              v-model="ruleForm.testMethodsId"
-              multiple
-              collapse-tags
-              collapse-tags-tooltip
-              placeholder="请选择"
-              style="width: 625px"
-              :automaticDropdown = "automaticDropdown"
-            >
-              <el-checkbox-group v-model="ruleForm.testMethodsId">
-                <el-option
-                  v-for="item in initOption"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                >
-                </el-option>
-              </el-checkbox-group>
-            </el-select>
-          </el-form-item>
-        </el-col>
-
-
- 
-  
-
-  interface Tree {
-  id: number;
-  label: string;
-  children?: Tree[];
-}
-  const treeRef = ref<InstanceType<typeof ElTree>>();
-  const resetChecked = () => {
-  treeRef.value!.setCheckedKeys([], false);
-};
-  
-  ruleForm.testItemsId = treeRef.value!.getCheckedKeys(false);
-      
-      const { entrustStartDate, entrustEndDate,
-              orgnization, eqpType,  designCompany, supervisionCompany, height,
-              square, testItemsId, testMethodsId, facilityNo , facilityName, facilityCategory,
-              districtCode, constructionCopmany, detailedAddress, shopName } = ruleForm;
-      
-      
-      
-      const getCheckedKeys = () => {
-        console.log(treeRef.value!.getCheckedKeys(false))
-      }
-
-      const checkList: Tree[] = [
-  {
-    id: 1,
-    label: "基础或被依附体",
-    children: [
-      {
-        id: 7,
-        label: "外观状况",
-        children: [],
-      },
-      {
-        id: 8,
-        label: "混凝土抗压强度",
-        children: [],
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: "结构构件",
-    children: [
-      {
-        id: 9,
-        label: "构件几何尺寸",
-        children: [],
-      },
-      {
-        id: 10,
-        label: "构件变形",
-        children: [
-          {
-            id: 25,
-            label: "垂直度",
-            children: [],
-          },
-          {
-            id: 26,
-            label: "柱身弯曲",
-            children: [],
-          },
-          {
-            id: 27,
-            label: "挠度",
-            children: [],
-          },
-          {
-            id: 28,
-            label: "平面侧弯",
-            children: [],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 3,
-    label: "构架连接",
-    children: [
-      {
-        id: 11,
-        label: "结构主体与基础或被依附体连接",
-        children: [
-          {
-            id: 29,
-            label: "连接状况",
-            children: [],
-          },
-          {
-            id: 30,
-            label: "后置锚栓抗拉拔",
-            children: [],
-          },
-          {
-            id: 31,
-            label: "锚固螺栓拧紧扭矩",
-            children: [],
-          },
-        ],
-      },
-      {
-        id: 12,
-        label: "结构构件连接",
-        children: [
-          {
-            id: 32,
-            label: "连接状况",
-            children: [],
-          },
-          {
-            id: 33,
-            label: "法兰盘结合面状况",
-            children: [],
-          },
-          {
-            id: 34,
-            label: "连接螺栓拧紧扭矩",
-            children: [],
-          },
-        ],
-      },
-      {
-        id: 13,
-        label: "焊缝",
-        children: [
-          {
-            id: 35,
-            label: "焊缝外观",
-            children: [],
-          },
-          {
-            id: 36,
-            label: "焊缝质量（超声波探伤）",
-            children: [],
-          },
-          {
-            id: 37,
-            label: "焊缝质量（磁粉探伤）",
-            children: [],
-          },
-          {
-            id: 38,
-            label: "焊缝质量（渗透探伤）",
-            children: [],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 4,
-    label: "面板及围护",
-    children: [
-      {
-        id: 14,
-        label: "面板、围护及其安装质量",
-        children: [],
-      },
-      {
-        id: 15,
-        label: "灯布、扎绳杆及其固定质量",
-        children: [],
-      },
-      {
-        id: 16,
-        label: "显示单元及其固定质量",
-        children: [],
-      },
-    ],
-  },
-  {
-    id: 5,
-    label: "结构防腐",
-    children: [
-      {
-        id: 17,
-        label: "锈蚀状况",
-        children: [],
-      },
-      {
-        id: 18,
-        label: "防腐涂层厚度",
-        children: [],
-      },
-      {
-        id: 19,
-        label: "涂层附着力",
-        children: [],
-      },
-    ],
-  },
-  {
-    id: 6,
-    label: "电气照明及防雷装置",
-    children: [
-      {
-        id: 20,
-        label: "电气供配电及控制装置",
-        children: [
-          {
-            id: 39,
-            label: "电气控制箱（柜）供配电容量匹配",
-            children: [],
-          },
-          {
-            id: 40,
-            label: "箱（柜）内电器设置规范性",
-            children: [],
-          },
-          {
-            id: 41,
-            label: "供配电及控制箱（柜）接地型式",
-            children: [],
-          },
-          {
-            id: 42,
-            label: "绝缘电阻",
-            children: [],
-          },
-          {
-            id: 43,
-            label: "接地电阻",
-            children: [],
-          },
-          {
-            id: 44,
-            label: "漏电保护装置性能",
-            children: [],
-          },
-        ],
-      },
-      {
-        id: 21,
-        label: "线缆",
-        children: [
-          {
-            id: 45,
-            label: "供配电线缆设置状况",
-            children: [],
-          },
-        ],
-      },
-      {
-        id: 22,
-        label: "灯具",
-        children: [
-          {
-            id: 46,
-            label: "安装状况",
-            children: [],
-          },
-          {
-            id: 47,
-            label: "线缆绝缘保护",
-            children: [],
-          },
-          {
-            id: 48,
-            label: "不带电金属体接地状况",
-            children: [],
-          },
-        ],
-      },
-      {
-        id: 23,
-        label: "接地电阻",
-        children: [],
-      },
-      {
-        id: 24,
-        label: "防雷装置",
-        children: [
-          {
-            id: 49,
-            label: "浪涌保护器",
-            children: [],
-          },
-          {
-            id: 50,
-            label: "电气连通性",
-            children: [],
-          },
-          {
-            id: 51,
-            label: "防雷接地电阻",
-            children: [],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 52,
-    label: "结构复核",
-    children: [],
-  },
-];
-
-.resetCheckListBtn{
-  position: absolute;
-  left: 64%;
-  align-items: center;
-  justify-content: center;
-  margin-top: 240px;
-}
-
-
-      <el-button class="resetCheckListBtn" @click="resetChecked(ruleFormRef)"
-        >重置检测项目</el-button
-      >
-
-
-
-
-
-      
-      -->

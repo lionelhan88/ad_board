@@ -8,7 +8,7 @@ import locale from 'element-plus/lib/locale/lang/zh-cn'
 import { ElConfigProvider } from 'element-plus'
 import './assets/CSS/global.css'
 import axios from "axios"
-
+import "amfe-flexible"
 
 const app = createApp(App)
 

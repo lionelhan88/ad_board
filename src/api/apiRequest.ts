@@ -124,6 +124,7 @@ export const exportPdf = (data : object) =>{
         method: 'post',
         headers:{
             "Authorization": storage.get('token') ?? '',
+            "Content-Type": "application/json",
         },
         responseType: 'blob',
         data,
@@ -256,6 +257,21 @@ export const getAccessUrl = (data : object) =>{
         method: 'post',
         headers:{
             "Authorization": storage.get('token') ?? '',
+        },
+        data,
+    })
+}
+
+
+// 上传报告
+export const upReport = (data : object) =>{
+
+    return service.request({
+        url: '/api/entrustmentDetail/uploadFile',
+        method: 'post',
+        headers:{
+            "Authorization": storage.get('token') ?? '',
+            "Content-Type": "multipart/form-data",
         },
         data,
     })

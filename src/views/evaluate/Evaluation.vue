@@ -98,7 +98,8 @@
             检测结果
           </div>
         </template>
-        <el-input v-model="detectionResult" type="textarea"> </el-input>
+        <el-input v-model="detectionResult" type="textarea" v-if="defaultDetectionResult==null"></el-input>
+        <el-input v-model="defaultDetectionResult" type="textarea" v-else></el-input>
       </el-descriptions-item>
     </el-descriptions>
 
@@ -161,10 +162,11 @@ import { useRouter, useRoute } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 const data = {
-  id: route.query,
+  id: route.query.id,
 };
 const comprehensiveGrade = ref('');
-const detectionResult = ref();
+const detectionResult = ref("");
+const defaultDetectionResult = ref();
 const evaluationList = ref([]);
 const finalContent = [
   "（A级）可继续使用，并应按规范要求做好维护保养",
@@ -222,10 +224,10 @@ import {
 let arr = [];
 
 onMounted(() => {
-  const detail = getDetectionResultById(data.id);
 
-  detail.then((response) => {
-    detectionResult.value = response.data.data.finalLevel.detectionResult;
+  const detail = getDetectionResultById(data);
+  detail.then((response) => {  
+    defaultDetectionResult.value = response.data.data.finalLevel.detectionResult;
     comprehensiveGrade.value = response.data.data.finalLevel.comprehensiveGrade;
     evaluationList.value = response.data.data.scoreEvaluationVoList;
 
@@ -365,23 +367,33 @@ const saveInfo = () => {
   }
   newData.id = route.query.id;
   newData.comprehensiveGrade = comprehensiveGrade.value;
-  newData.detectionResult = detectionResult.value;
+  if(defaultDetectionResult.value == null){
+    newData.detectionResult = detectionResult.value;
+  }else{
+    newData.detectionResult = defaultDetectionResult.value;
+  }
+  
   const result = saveDetectionResultById(newData);
   result.then((response) => {
-    console.log(response.data)
     if(response.data.code == 200){
       resultSaveSuccess.value = true;
     }else{
       resultSaveFailed.value = true;
     }
-  })
+  }) 
+
+ 
 };
 const returnPage = () => {
-  router.go(-1);
+  router.push({
+    name: "searchTrust",
+    query: {
+      form: route.query.form,
+    }
+  });
 };
 
 const EvaDetail = (index) => {
-  console.log(" details ", index);
   if(index == 0 || index == 3 || index == 4 ){
     router.push({
       name: "detail1",
@@ -390,7 +402,7 @@ const EvaDetail = (index) => {
         rootTestItemsId: evaluationList.value[index].id,
       }
     })
-  }else if(index == 1){
+  }else if(index == 1 ){
     router.push({
       name: "detail2",
       query:{
@@ -398,7 +410,7 @@ const EvaDetail = (index) => {
         rootTestItemsId: evaluationList.value[index].id,
       }
     })
-  }else if(index == 2 || index == 5){
+  }else if(index == 2 || index == 5 ){
     router.push({
       name: "detail3",
       query:{
@@ -420,9 +432,11 @@ const EvaDetail = (index) => {
 };
 </script>
 
+<!--    -->
+
 <style scoped lang="scss">
 .asdfasf {
-  width: 150px;
+  width: 170px;
   align: center;
   display: flex;
 }
@@ -431,7 +445,7 @@ const EvaDetail = (index) => {
 }
 .saveBtn {
   margin-top: 48px;
-  margin-left: 640px;
+  margin-left: 3.5rem;
 }
 .cancelBtn {
   margin-top: 48px;

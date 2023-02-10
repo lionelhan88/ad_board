@@ -1,3 +1,32 @@
+<script lang="ts" setup>
+import {
+  DocumentAdd,
+  Search,
+  SwitchButton,
+  User
+} from '@element-plus/icons-vue'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router"
+import { storage } from '../utils/storage'
+
+const router = useRouter();
+
+const logOut = () => {
+  router.push({name: "login"});
+}
+
+const useName = ref();
+const unitName = ref("");
+
+onMounted( ()=>{
+  useName.value = storage.get("accountName")
+  unitName.value = storage.get("detectionUnitName");
+})
+
+
+</script>
+
+
 <template>
   <div class="common-layout">
     <el-container>
@@ -5,8 +34,23 @@
       <el-header class="header">
         <span class="title">户外广告和招牌设施安全检测管理系统</span>
 
-        <el-button class="exitBtn" @click="logOut()" :icon="SwitchButton" round type="info">退出</el-button> 
-        
+        <el-dropdown trigger="click" class="dropdownMenu"> 
+
+          <el-button type="info" >
+            <el-icon class="userInfo"><User /></el-icon>
+            {{useName}}
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item > 
+                <div class="unitNamemm" v-if="unitName.length>10"> {{unitName.slice(0,10)}}<br>{{unitName.slice(11)}} </div>
+                <div class="unitNamemm" v-else> {{unitName}}</div>  
+              </el-dropdown-item>
+              <el-dropdown-item>设置</el-dropdown-item>
+              <el-dropdown-item @click="logOut()">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>    
       </el-header>
       
       
@@ -19,7 +63,7 @@
                 class="el-menu"
                 default-active="1"
                 background-color="#2F4F4F"
-                text-color = "#FFFFF0"
+                text-color = "#FFFFFF"
                 :router="true"
               >
                 <el-menu-item index="1" :route="{path:'/home/createTrust'}">
@@ -39,7 +83,13 @@
 
         <el-main>
           <div>
-            <router-view></router-view>
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <component :is="Component" :key="$route.name" v-if="$route.meta.keepAlive"/>
+            </keep-alive>
+            <component :is="Component" :key="$route.name"  v-if="!$route.meta.keepAlive"/>
+          </router-view>
+          <!-- <router-view></router-view> -->
           </div>    
 
         </el-main>
@@ -64,6 +114,15 @@
       height:94vh;
       font-size: 40px;
     }
+
+
+.el-menu-item.is-active {
+      background-color: #5F9EA0 !important;
+      color: #FFFFFF;
+      span {
+        color: #FFFFFF !important;
+      }
+}
 
   
   .el-main{
@@ -95,33 +154,24 @@
     margin-top: 12px;
   }
   
+  .dropdownMenu{
+    display: flex;
+    position: absolute;
+    left: 95%;
+    transform: translate(-100%);
+    margin-top: 12px;
+  }
+
+  .userInfo{
+    margin-right: 5px;
+  }
 
 
+  .unitNamemm{
+    width: 140px;
+    display: inline-block;
+    word-break:normal; 
+    white-space:inherit ;
+  }
 </style>
 
-<script lang="ts" setup>
-import {
-  DocumentAdd,
-  Search,
-  SwitchButton
-} from '@element-plus/icons-vue'
-
-import { useRouter } from "vue-router"
-
-const router = useRouter();
-
-const logOut = () => {
-
-  router.push({name: "login"});
-
-}
-
-
-</script>
-
-
-<!-- <router-view v-slot="{ Component }">
-              <keep-alive >
-                <component :is="Componnet" :key="$route.name"></component>
-              </keep-alive>
-            </router-view>  -->
